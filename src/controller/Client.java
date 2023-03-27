@@ -9,98 +9,90 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-public class Client implements ClientEnviroment {
+public class Client implements ClientEnviroment, Log {
 
-	public final String CONECXION_ACCEPTED = "CONECXION_ACCEPTED";
-	public final String CONECXION_REJECTED = "CONECXION_REJECTED";
-	public final String COMFIRMATION_SUCCESS = "OK";
-
-	private Socket socket;
-	private String nick = "Nameless";
+	private Socket socket = null;
+	private String pNick = "Nameless";
 	private ArrayList<Long> chatIds;
-	private boolean online = false;
+	private BufferedReader br = null;
+	private BufferedWriter bw = null;
 
-	private BufferedReader br;
-	private BufferedWriter bw;
+	private boolean chatting = false;
 
-	public boolean isOnline() {
-		return this.online;
+	public boolean isChatting() {
+		return chatting;
 	}
 
-	public String getUserNick() {
-		return this.nick;
-	}
-
-	public void goOnline(boolean online) {
-		this.online = online;
+	public void setChatting(Boolean chatting) {
+		this.chatting = chatting;
 	}
 
 	public Client() throws IOException {
-		this.socket = new Socket(HOSTNAME, PORT);
+		socket = new Socket(HOSTNAME, PORT);
 	}
 
 	public Client(String nick) {
 		try {
-			this.nick = nick;
-			this.socket = new Socket(HOSTNAME, PORT);
-			this.br = new BufferedReader(
-					new InputStreamReader(this.socket.getInputStream()));
-			this.bw = new BufferedWriter(
-					new OutputStreamWriter(this.socket.getOutputStream()));
-			
+			pNick = nick;
+			socket = new Socket(HOSTNAME, PORT);
+			br = new BufferedReader(
+					new InputStreamReader(socket.getInputStream()));
+			bw = new BufferedWriter(
+					new OutputStreamWriter(socket.getOutputStream()));
+
 			if (presentToServer()) {
-				System.out.println(CONECXION_ACCEPTED);
-				this.online = true;
+				System.out.println(INFO_CONECXION_ACCEPTED);
 			} else {
-				System.out.println(CONECXION_REJECTED);
-				this.online = false;
+				System.out.println(INFO_CONECXION_REJECTED);
 			}
 
 		} catch (UnknownHostException e) {
-			this.online = false;		
+			System.out.println("UnknownHostException");
 		} catch (IOException e) {
-			this.online = false;
+			System.out.println("IOEx");
 		} catch (NullPointerException e) {
-			System.out.println("YOU CANT WRITE NOR READ");
-			this.online = false;
+			System.out.println("Null pointer");
 		}
-		
 
-	}
-
-	public void write(String msg) throws IOException {
-		System.out.println("OUT TO SERVER " + msg);
-		this.bw.write(msg);
-		this.bw.newLine();
-		this.bw.flush();
-	}
-
-	public String read() throws IOException {
-		return this.br.readLine();
-	}
-
-	public boolean isConnected() {
-		return this.socket.isConnected();
 	}
 
 	private boolean presentToServer() {
 		try {
-			System.out.println("Presented to the server as " + this.nick);
-			write(this.nick);
-
-			System.out.println("Waiting for server CONFIRMATION");
-
-			if (read().equals("OK")) {
+			System.out.println(INFO_PRESENTATION_START + pNick);
+			write(pNick);
+			if (read().equals(INFO_COMFIRMATION_SUCCESS)) {
 				return true;
 			} else {
 				return false;
 			}
 
 		} catch (IOException e) {
-			System.out.println("Could not PRESENT to the server");
-			this.online = false;
+			System.out.println(ERROR_PRESENTATION);
 			return false;
 		}
 
 	}
+
+	public void startChatWith() {
+		chatting = true;
+		System.out.println("~~~~~");
+	}
+
+	public void write(String msg) throws IOException {
+		System.out.println(mgsToServer + msg);
+		bw.write(msg);
+		bw.newLine();
+		bw.flush();
+	}
+
+	public String read() throws IOException {
+		return br.readLine();
+	}
+
+	public boolean isConnected() throws NullPointerException {
+		return socket.isConnected();
+	}
+
+	
+
 }
