@@ -19,6 +19,10 @@ public class Client implements ClientEnviroment, Log {
 
 	private boolean chatting = false;
 
+	public String getNick() {
+		return pNick;
+	}
+
 	public boolean isChatting() {
 		return chatting;
 	}
@@ -71,11 +75,6 @@ public class Client implements ClientEnviroment, Log {
 			return false;
 		}
 
-	}
-
-	public void startChatWith() {
-		chatting = true;
-		System.out.println("~~~~~");
 	}
 
 	public void write(String msg) throws IOException {

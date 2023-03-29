@@ -53,39 +53,28 @@ public class ConsoleConnection extends Thread implements ConsoleCommands, Consol
     }
 
     public void startMenu() {
-        if (ConsoleConnection.lastLineIn.equals(Action_ASK_PERMISSION)) {
-            client.setChatting(true);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            writeByConsole(sc.nextLine());
-        } else if(!client.isChatting()) {
-            showMenu();
-            switch (sc.nextLine()) {
-                case "1":
-                    sendRequest(SHOW_ONLINE);
-                    break;
-                case "2":
-                client.setChatting(true);
-                    sendRequest(SHOW_ONLINE);
-                    System.out.println(ACTION_SELECT_USER_TO_CHAT);
-                    String selectedUser = sc.nextLine();
-                    sendRequest(NEW_CHAT + selectedUser);
-                
-                    break;
-                case "3":
-                    break;
-                default:
-                    break;
-            }
-        } else if (client.isChatting()) {
-            System.out.println("SEND MSG TO USER");
-            writeByConsole();
+
+        showMenu();
+        switch (sc.nextLine()) {
+            case "1":
+                sendRequest(SHOW_ONLINE);
+                break;
+            case "2":
+                sendRequest(NEW_CHAT);
+                try {
+                    client.write(client.getNick());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                break;
+            case "3":
+                break;
+            default:
+                break;
         }
-            
+
+        System.out.println("SEND MSG TO USER");
     }
 
     public void writeByConsole(String statement) {
@@ -96,6 +85,7 @@ public class ConsoleConnection extends Thread implements ConsoleCommands, Consol
             System.out.println("NOT SEND to SERVER");
         }
     }
+
     public void writeByConsole() {
         try {
             client.write(sc.nextLine());
@@ -104,20 +94,30 @@ public class ConsoleConnection extends Thread implements ConsoleCommands, Consol
         }
     }
 
-    public void listenServer() {
-        try {
-            ConsoleConnection.lastLineIn = client.read();
-            System.out.println("FROM SERVER {" + lastLineIn + "}");
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+    public void listenServer() throws IOException {
+
+        ConsoleConnection.lastLineIn = client.read();
+
+        switch (lastLineIn) {
+            case ACTION_ASK_PERMISSION:
+            System.out.println(lastLineIn);
+                break;
+            default:
+                System.out.println("FROM SERVER {" + lastLineIn + "}");
+                break;
+
         }
+
     }
 
     @Override
     public void run() {
         while (true) {
-            listenServer();
+            try {
+                listenServer();
+            } catch (IOException e) {
+                System.out.println("ERROR LISTENING");
+            }
         }
     }
 
