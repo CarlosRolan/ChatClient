@@ -1,34 +1,22 @@
 package controller;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 
-public class Client implements ClientEnviroment, Log {
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import java.net.Socket;
+import java.net.UnknownHostException;;
+
+public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
-	private ArrayList<Long> chatIds;
-	private BufferedReader br = null;
-	private BufferedWriter bw = null;
-
-	private boolean chatting = false;
+	private ObjectInputStream ois = null;
+	private ObjectOutputStream oos = null;
 
 	public String getNick() {
 		return pNick;
-	}
-
-	public boolean isChatting() {
-		return chatting;
-	}
-
-	public void setChatting(Boolean chatting) {
-		this.chatting = chatting;
 	}
 
 	public Client() throws IOException {
@@ -39,15 +27,14 @@ public class Client implements ClientEnviroment, Log {
 		try {
 			pNick = nick;
 			socket = new Socket(HOSTNAME, PORT);
-			br = new BufferedReader(
-					new InputStreamReader(socket.getInputStream()));
-			bw = new BufferedWriter(
-					new OutputStreamWriter(socket.getOutputStream()));
+
+			oos = new ObjectOutputStream(socket.getOutputStream());
+			ois = new ObjectInputStream(socket.getInputStream());
 
 			if (presentToServer()) {
-				System.out.println(INFO_CONECXION_ACCEPTED);
+				System.out.println(Log.INFO_CONECXION_ACCEPTED);
 			} else {
-				System.out.println(INFO_CONECXION_REJECTED);
+				System.out.println(Log.INFO_CONECXION_REJECTED);
 			}
 
 		} catch (UnknownHostException e) {
@@ -56,42 +43,44 @@ public class Client implements ClientEnviroment, Log {
 			System.out.println("IOEx");
 		} catch (NullPointerException e) {
 			System.out.println("Null pointer");
+			e.printStackTrace();
 		}
-
 	}
 
 	private boolean presentToServer() {
-		try {
-			System.out.println(INFO_PRESENTATION_START + pNick);
-			write(pNick);
-			if (read().equals(INFO_COMFIRMATION_SUCCESS)) {
-				return true;
-			} else {
-				return false;
-			}
+		Message presentation = new Message(PRESENTATION, getNick());
+		writeMessage(presentation);
 
-		} catch (IOException e) {
-			System.out.println(ERROR_PRESENTATION);
+		Message presentationResponse = readMessage();
+		if (presentationResponse.getAction().equals(PRESENTATION_SUCCES)) {
+			return true;
+		} else {
 			return false;
 		}
-
 	}
 
-	public void write(String msg) throws IOException {
-		System.out.println(mgsToServer + msg);
-		bw.write(msg);
-		bw.newLine();
-		bw.flush();
-	}
-
-	public String read() throws IOException {
-		return br.readLine();
-	}
-
-	public boolean isConnected() throws NullPointerException {
+	public boolean isConnected() {
 		return socket.isConnected();
 	}
 
-	
+	public void writeMessage(Message msg) {
+		try {
+			oos.writeObject(msg);
+			oos.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public Message readMessage() {
+		try {
+			return (Message) ois.readObject() ;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
