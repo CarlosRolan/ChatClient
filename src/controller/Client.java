@@ -32,9 +32,9 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 			ois = new ObjectInputStream(socket.getInputStream());
 
 			if (presentToServer()) {
-				System.out.println(Log.INFO_CONECXION_ACCEPTED);
+				System.out.println(INFO_CONECXION_ACCEPTED);
 			} else {
-				System.out.println(Log.INFO_CONECXION_REJECTED);
+				System.out.println(INFO_CONECXION_REJECTED);
 			}
 
 		} catch (UnknownHostException e) {

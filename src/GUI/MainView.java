@@ -7,26 +7,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
-import javax.swing.JTabbedPane;
-import javax.swing.JScrollPane;
-import java.awt.List;
 import java.awt.Panel;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.JTextField;
 import java.awt.TextField;
-import javax.swing.JFormattedTextField;
 import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.AbstractListModel;
-import javax.swing.JToolBar;
-import java.awt.Scrollbar;
 import java.awt.FlowLayout;
-import java.awt.ScrollPane;
-import javax.swing.JDesktopPane;
 
 public class MainView extends JFrame {
 

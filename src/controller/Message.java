@@ -54,7 +54,11 @@ public class Message implements Serializable {
 
     @Override
     public String toString() {
-        return "MSG[-\n\tAction{"+pAction+"}\n\t"+"Emisor{"+pEmisor+"}\n\t"+"Receptor{"+pReceptor+"}\n\t"+"Text{"+pText+"}\n]";
+        return "MSG[\n\tAction{"+pAction+"}\n\t"+"Emisor{"+pEmisor+"}\n\t"+"Receptor{"+pReceptor+"}\n\t"+"Text{"+pText+"}\n]";
+    }
+
+    public String requestInfo() {
+        return "___"+pAction+"____\t" + ":" + "[" + pEmisor + "]"+ "=>"+"[" + pReceptor +"]";
     }
     
     

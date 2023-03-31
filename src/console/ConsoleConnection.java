@@ -40,13 +40,13 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     public void startMenu() {
-
         showMenu();
         switch (sc.nextLine()) {
             case "1":
                 client.writeMessage(new Message(SHOW_ALL_ONLINE, client.getNick()));
                 break;
             case "2":
+                requestChat();
                 break;
             case "3":
                 break;
@@ -55,36 +55,68 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         }
     }
 
-    public Message getServerResponseMessage() {
-        return client.readMessage();
+    public void requestChat() {
+        System.out.println(ACTION_SELECT_USER);
+        System.out.println(MENU_OP_2_1);
+        System.out.println(MENU_OP_2_2);
+        String op = sc.nextLine();
+
+        if (op.equals("a")) {
+            System.out.println(ACTION_SELECT_USER_BY_ID);
+            String userID = sc.nextLine();
+            client.writeMessage(new Message(CHAT_REQUESTED, client.getNick(), userID, ACTION_SELECT_USER_BY_ID));
+        } else if (op.equals("b")) {
+            System.out.println(ACTION_SELECT_USER_BY_NICKNAME);
+            String userNick = sc.nextLine();
+            client.writeMessage(
+                    new Message(CHAT_REQUESTED, client.getNick(), userNick, ACTION_SELECT_USER_BY_NICKNAME));
+        } else {
+            System.out.println(MENU_OP_ERROR);
+        }
+    }
+
+    public void initChat(Message msg) {
+        System.out.println(msg.getEmisor() + " wants to CHAT with you");
+        System.out.println(MENU_ALLOW_CHAT);
+        System.out.println(MENU_DENY_CHAT);
+
+        Scanner sc2 = new Scanner(System.in);
+        String allowChatting = null;
+        synchronized (this) {
+            allowChatting = sc2.nextLine();
+        }
+       
+
+        if (allowChatting.equals("a")) {
+            client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), msg.getEmisor()));
+        } else if (allowChatting.equals("b")) {
+            client.writeMessage(new Message(REJECT_CHAT, client.getNick(), msg.getEmisor()));
+        }
     }
 
     public void listenServer() throws IOException {
 
-        Message responMessage = getServerResponseMessage();
-
-        if (responMessage.getAction().equals(REQUEST_RESPONSE)) {
-
-        }
+        Message responMessage = client.readMessage();
 
         switch (responMessage.getAction()) {
-            case REQUEST_RESPONSE:
-                manageResponse(responMessage);
-                break;
-            default:
-                System.out.println("FROM SERVER {" + responMessage.toString() + "}");
-                break;
-
-        }
-
-    }
-
-    private void manageResponse(Message requestResponse) {
-        switch (requestResponse.getAction()) {
             case SHOW_ALL_ONLINE:
+                System.out.println(responMessage.getText());
+                break;
+            case ASKING_PERMISSION:
+                initChat(responMessage);
+                break;
+            case WAITING_FOR_PERMISSION:
+                System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
+                break;
+            case CLIENT_NOT_FOUND:
+                System.out.println(responMessage.getAction());
+                break;
+            case SELF_REFERENCE:
+                System.out.println(responMessage.getAction());
+            default:
+                System.out.println("FROM {" + responMessage.toString() + "}");
                 break;
         }
-
     }
 
     @Override
