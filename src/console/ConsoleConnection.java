@@ -21,11 +21,15 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     // --------
 
     private Client client = null;
-    private Scanner sc = new Scanner(System.in);
+
+    private String currentChatter = null;
 
     private ConsoleConnection() {
+        Scanner sc = new Scanner(System.in);
+
         System.out.println(ACTION_SET_NICK);
         client = new Client(sc.nextLine());
+        sc.close();
     }
 
     private ConsoleConnection(String nick) {
@@ -33,13 +37,15 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     private void showMenu() {
-        System.out.println("===================");
+
+        System.out.println("==========|" + client.getNick() + "|==========");
         System.out.println(MENU_OP_1);
         System.out.println(MENU_OP_2);
         System.out.println(MENU_OP_3);
     }
 
     public void startMenu() {
+        Scanner sc = new Scanner(System.in);
         showMenu();
         switch (sc.nextLine()) {
             case "1":
@@ -53,9 +59,11 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
             default:
                 break;
         }
+        sc.close();
     }
 
     public void requestChat() {
+        Scanner sc = new Scanner(System.in);
         System.out.println(ACTION_SELECT_USER);
         System.out.println(MENU_OP_2_1);
         System.out.println(MENU_OP_2_2);
@@ -73,6 +81,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         } else {
             System.out.println(MENU_OP_ERROR);
         }
+        sc.close();
     }
 
     public void initChat(Message msg) {
@@ -80,18 +89,19 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(MENU_ALLOW_CHAT);
         System.out.println(MENU_DENY_CHAT);
 
-        Scanner sc2 = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
         String allowChatting = null;
-        synchronized (this) {
-            allowChatting = sc2.nextLine();
-        }
-       
+
+        allowChatting = sc.nextLine();
 
         if (allowChatting.equals("a")) {
             client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), msg.getEmisor()));
+            currentChatter = msg.getEmisor();
         } else if (allowChatting.equals("b")) {
             client.writeMessage(new Message(REJECT_CHAT, client.getNick(), msg.getEmisor()));
+            currentChatter = null;
         }
+        sc.close();
     }
 
     public void listenServer() throws IOException {
@@ -113,10 +123,35 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 break;
             case SELF_REFERENCE:
                 System.out.println(responMessage.getAction());
+                break;
+            case START_CHAT:
+
+                break;
             default:
                 System.out.println("FROM {" + responMessage.toString() + "}");
                 break;
         }
+    }
+
+    private void chatting() {
+
+        Scanner sc = new Scanner(System.in);
+        System.out.println(MENU_CHAT_1);
+        System.out.println(MENU_CHAT_EXIT);
+
+        String msgToChat = sc.nextLine();
+
+        do {
+
+            msgToChat = sc.nextLine();
+
+            if (!msgToChat.isBlank() || !msgToChat.isEmpty()) {
+                client.writeMessage(new Message(TO_CHAT, client.getNick(), currentChatter, msgToChat));
+            }
+
+        } while (!msgToChat.equals("0"));
+
+        currentChatter = null;
     }
 
     @Override
@@ -125,7 +160,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
             try {
                 listenServer();
             } catch (IOException e) {
-                System.out.println("ERROR LISTENING");
+                e.printStackTrace();
             }
         }
     }
