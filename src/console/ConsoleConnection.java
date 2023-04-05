@@ -12,6 +12,8 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     // Singleton
     private static ConsoleConnection instance;
 
+    private static Scanner sc = new Scanner(System.in);
+
     public static ConsoleConnection getInstance() {
         if (instance == null) {
             instance = new ConsoleConnection();
@@ -22,14 +24,15 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
 
     private Client client = null;
 
-    private String currentChatter = null;
+    private boolean chatting = false;
+
+    public boolean isChatting() {
+        return false;
+    }
 
     private ConsoleConnection() {
-        Scanner sc = new Scanner(System.in);
-
         System.out.println(ACTION_SET_NICK);
         client = new Client(sc.nextLine());
-        sc.close();
     }
 
     private ConsoleConnection(String nick) {
@@ -37,7 +40,6 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     private void showMenu() {
-
         System.out.println("==========|" + client.getNick() + "|==========");
         System.out.println(MENU_OP_1);
         System.out.println(MENU_OP_2);
@@ -45,7 +47,6 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     public void startMenu() {
-        Scanner sc = new Scanner(System.in);
         showMenu();
         switch (sc.nextLine()) {
             case "1":
@@ -59,11 +60,9 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
             default:
                 break;
         }
-        sc.close();
     }
 
     public void requestChat() {
-        Scanner sc = new Scanner(System.in);
         System.out.println(ACTION_SELECT_USER);
         System.out.println(MENU_OP_2_1);
         System.out.println(MENU_OP_2_2);
@@ -81,7 +80,6 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         } else {
             System.out.println(MENU_OP_ERROR);
         }
-        sc.close();
     }
 
     public void initChat(Message msg) {
@@ -89,24 +87,25 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(MENU_ALLOW_CHAT);
         System.out.println(MENU_DENY_CHAT);
 
-        Scanner sc = new Scanner(System.in);
         String allowChatting = null;
 
-        allowChatting = sc.nextLine();
+        Scanner scanner = new Scanner(System.in);
+
+        allowChatting = scanner.nextLine();
 
         if (allowChatting.equals("a")) {
             client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), msg.getEmisor()));
-            currentChatter = msg.getEmisor();
-        } else if (allowChatting.equals("b")) {
+        } else {
             client.writeMessage(new Message(REJECT_CHAT, client.getNick(), msg.getEmisor()));
-            currentChatter = null;
         }
-        sc.close();
+
+        scanner.close();
     }
 
     public void listenServer() throws IOException {
 
         Message responMessage = client.readMessage();
+        
 
         switch (responMessage.getAction()) {
             case SHOW_ALL_ONLINE:
@@ -125,7 +124,10 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 System.out.println(responMessage.getAction());
                 break;
             case START_CHAT:
-
+                System.out.println(responMessage.getEmisor() + "_" + responMessage.getAction());
+                break;
+            case REJECT_CHAT:
+                System.out.println(responMessage.getText());
                 break;
             default:
                 System.out.println("FROM {" + responMessage.toString() + "}");
@@ -133,29 +135,8 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         }
     }
 
-    private void chatting() {
-
-        Scanner sc = new Scanner(System.in);
-        System.out.println(MENU_CHAT_1);
-        System.out.println(MENU_CHAT_EXIT);
-
-        String msgToChat = sc.nextLine();
-
-        do {
-
-            msgToChat = sc.nextLine();
-
-            if (!msgToChat.isBlank() || !msgToChat.isEmpty()) {
-                client.writeMessage(new Message(TO_CHAT, client.getNick(), currentChatter, msgToChat));
-            }
-
-        } while (!msgToChat.equals("0"));
-
-        currentChatter = null;
-    }
-
     @Override
-    public void run() {
+    synchronized public void run() {
         while (true) {
             try {
                 listenServer();

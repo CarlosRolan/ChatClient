@@ -11,6 +11,9 @@ public class Main {
 	public static void main(String[] args) {
 		ConsoleConnection cc = ConsoleConnection.getInstance();
 		cc.start();
-		cc.startMenu();
+		while(true) {
+			cc.startMenu();
+		}
+		
 	}
 }
