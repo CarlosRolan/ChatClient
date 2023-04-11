@@ -6,10 +6,9 @@ public interface ConsoleActions {
     final String ACTION_SELECT_USER = "Select an avaliable user to start chatting";
     final String ACTION_SELECT_USER_BY_ID = "Select an ID of the user you want to chat with";
     final String ACTION_SELECT_USER_BY_NICKNAME = "Select an NICK of the user you want to chat with";
-
-   
+    
     final String MENU_OP_1 = "1.Show online users";
-    final String MENU_OP_2 = "2.Chat with \"userNick\"";
+    final String MENU_OP_2 = "2.Chat with user";
         final String MENU_OP_2_1 = "\ta.Select by ID";
         final String MENU_OP_2_2 = "\tb.Select by nick";
             final String MENU_ALLOW_CHAT = "\ta.Allow";

@@ -22,12 +22,13 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
     // --------
 
+    private String chatNick = null;
     private Client client = null;
 
     private boolean chatting = false;
 
     public boolean isChatting() {
-        return false;
+        return chatting;
     }
 
     private ConsoleConnection() {
@@ -56,6 +57,13 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 requestChat();
                 break;
             case "3":
+                break;
+            case "a":
+                client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), chatNick));
+                chatting = true;
+                break;
+            case "b":
+                client.writeMessage(new Message(REJECT_CHAT, client.getNick(), chatNick));
                 break;
             default:
                 break;
@@ -86,36 +94,37 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(msg.getEmisor() + " wants to CHAT with you");
         System.out.println(MENU_ALLOW_CHAT);
         System.out.println(MENU_DENY_CHAT);
+        chatNick = msg.getEmisor();
+    }
 
-        String allowChatting = null;
-
-        Scanner scanner = new Scanner(System.in);
-
-        allowChatting = scanner.nextLine();
-
-        if (allowChatting.equals("a")) {
-            client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), msg.getEmisor()));
-        } else {
-            client.writeMessage(new Message(REJECT_CHAT, client.getNick(), msg.getEmisor()));
-        }
-
-        scanner.close();
+    public void sendMsgToChat() {
+        String text = sc.next();
+        client.writeMessage(new Message(TO_CHAT, client.getNick(), chatNick, text));
+        System.out.println("=[You]:\"" + text + "\"");
     }
 
     public void listenServer() throws IOException {
-
         Message responMessage = client.readMessage();
-        
+        handleAction(responMessage);
+    }
 
+    private void readChat(Message responMessage) {
+        String emisorNick = responMessage.getEmisor();
+        System.out.println("=\t[" + emisorNick + "]:\"" + responMessage.getText() + "\"");
+    }
+
+    private void handleAction(Message responMessage) {
         switch (responMessage.getAction()) {
             case SHOW_ALL_ONLINE:
                 System.out.println(responMessage.getText());
                 break;
             case ASKING_PERMISSION:
+                System.out.println("PROPRITY LISTEN" + getPriority());
                 initChat(responMessage);
                 break;
             case WAITING_FOR_PERMISSION:
                 System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
+                chatNick = responMessage.getEmisor();
                 break;
             case CLIENT_NOT_FOUND:
                 System.out.println(responMessage.getAction());
@@ -124,10 +133,15 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 System.out.println(responMessage.getAction());
                 break;
             case START_CHAT:
-                System.out.println(responMessage.getEmisor() + "_" + responMessage.getAction());
+                chatting = true;
+                System.out.println("===" + chatNick + "===");
                 break;
             case REJECT_CHAT:
+                chatting = false;
                 System.out.println(responMessage.getText());
+                break;
+            case TO_CHAT:
+                readChat(responMessage);
                 break;
             default:
                 System.out.println("FROM {" + responMessage.toString() + "}");
