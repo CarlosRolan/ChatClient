@@ -13,3 +13,5 @@ bin/GUI/MainView.class
 bin/GUI/MainView$1.class
 bin/GUI/package-info.class
 bin/controller/ResponseCommands.class
+.proyect
+.classpath
