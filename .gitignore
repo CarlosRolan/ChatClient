@@ -2,3 +2,14 @@
 bin/Main.class
 bin/console/ConsoleActions.class
 bin/console/ConsoleActions.class
+bin/console/ConsoleConnection.class
+bin/controller/ClientEnviroment.class
+bin/controller/Client.class
+bin/controller/Log.class
+bin/controller/Message.class
+bin/controller/package-info.class
+bin/controller/RequestAPI.class
+bin/GUI/MainView.class
+bin/GUI/MainView$1.class
+bin/GUI/package-info.class
+bin/controller/ResponseCommands.class
