@@ -14,7 +14,6 @@ public class Main {
 	public static void main(String[] args) {
 		
 		ConsoleConnection cc = ConsoleConnection.getInstance();
-		System.out.println("MAIN_TRHEAD " + Thread.currentThread().getPriority());
 		cc.start();
 		while(true) {
 			if (!cc.isChatting()) {
