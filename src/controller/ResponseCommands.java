@@ -9,7 +9,7 @@ public interface ResponseCommands {
 
     final String PRESENTATION_SUCCES = "PRESENTATION_SUCCES";
 
-    final String ASKING_PERMISSION = "ASKING_PERMISSION";
+    final String ASKED_FOR_PERMISSION = "ASKED_FOR_PERMISSION";
     final String WAITING_FOR_PERMISSION = "WAITING_FOR_PERMISSION";
 
     final String CLIENT_NOT_FOUND = "There is not an ONLINE user with that userID or nickName";

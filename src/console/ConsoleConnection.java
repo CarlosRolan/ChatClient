@@ -47,9 +47,29 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(MENU_OP_3);
     }
 
-    public void startMenu() {
-        showMenu();
-        switch (sc.nextLine()) {
+    public void startSesion() {
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        if (!chatting) {
+            showMenu();
+        }
+        
+        String op = sc.nextLine();
+        if (chatting) {
+            sendMsgToChat(op);
+        } else {
+            selectAction(op);
+        } 
+    }
+
+    public void selectAction(String op) {
+        switch (op) {
             case "1":
                 client.writeMessage(new Message(SHOW_ALL_ONLINE, client.getNick()));
                 break;
@@ -59,7 +79,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
             case "3":
                 break;
             case "a":
-                client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), chatNick));
+                client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), chatNick, client.getNick() + " ACCEPTS " + chatNick));
                 chatting = true;
                 break;
             case "b":
@@ -97,29 +117,27 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         chatNick = msg.getEmisor();
     }
 
-    public void sendMsgToChat() {
-        String text = sc.next();
+    public void sendMsgToChat(String text) {
         client.writeMessage(new Message(TO_CHAT, client.getNick(), chatNick, text));
-        System.out.println("=[You]:\"" + text + "\"");
+        System.out.println("==\t\t[You]:\"" + text + "\"");
     }
 
     public void listenServer() throws IOException {
         Message responMessage = client.readMessage();
-        handleAction(responMessage);
+        handleResponse(responMessage);
     }
 
     private void readChat(Message responMessage) {
         String emisorNick = responMessage.getEmisor();
-        System.out.println("=\t[" + emisorNick + "]:\"" + responMessage.getText() + "\"");
+        System.out.println("==[" + emisorNick + "]:\"" + responMessage.getText() + "\"");
     }
 
-    private void handleAction(Message responMessage) {
+    private void handleResponse(Message responMessage) {
         switch (responMessage.getAction()) {
             case SHOW_ALL_ONLINE:
                 System.out.println(responMessage.getText());
                 break;
-            case ASKING_PERMISSION:
-                System.out.println("PROPRITY LISTEN" + getPriority());
+            case ASKED_FOR_PERMISSION:
                 initChat(responMessage);
                 break;
             case WAITING_FOR_PERMISSION:
@@ -127,14 +145,16 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 chatNick = responMessage.getEmisor();
                 break;
             case CLIENT_NOT_FOUND:
+            chatting = false;
                 System.out.println(responMessage.getAction());
                 break;
             case SELF_REFERENCE:
+            chatting = false;
                 System.out.println(responMessage.getAction());
                 break;
             case START_CHAT:
                 chatting = true;
-                System.out.println("===" + chatNick + "===");
+                System.out.println("====" + chatNick + "====");
                 break;
             case REJECT_CHAT:
                 chatting = false;
@@ -150,7 +170,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     @Override
-    synchronized public void run() {
+    public void run() {
         while (true) {
             try {
                 listenServer();
