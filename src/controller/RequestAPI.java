@@ -2,7 +2,7 @@ package controller;
 
 public interface RequestAPI {
 
-    final String PRESENTATION = "PRESENTATION";
+    final String PRESENT = "PRESENTATION";
     final String SHOW_ALL_ONLINE = "SHOW_ALL_ONLINE";
 
     final String INIT_CHAT = "INIT_CHAT";

@@ -1,12 +1,10 @@
 package controller;
 
 import java.io.IOException;
-
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 import java.net.Socket;
-import java.net.UnknownHostException;;
+import java.net.UnknownHostException;
 
 public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 
@@ -48,7 +46,7 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 	}
 
 	private boolean presentToServer() {
-		Message presentation = new Message(PRESENTATION, getNick());
+		Message presentation = new Message(PRESENT, getNick());
 		writeMessage(presentation);
 
 		Message presentationResponse = readMessage();

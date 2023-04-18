@@ -2,11 +2,13 @@ package console;
 
 public interface ConsoleActions {
 
+    //User Input Actions
     final String ACTION_SET_NICK = "Write a nickname to identify yourself";
     final String ACTION_SELECT_USER = "Select an avaliable user to start chatting";
     final String ACTION_SELECT_USER_BY_ID = "Select an ID of the user you want to chat with";
     final String ACTION_SELECT_USER_BY_NICKNAME = "Select an NICK of the user you want to chat with";
     
+    //Console Options
     final String MENU_OP_1 = "1.Show online users";
     final String MENU_OP_2 = "2.Chat with user";
         final String MENU_OP_2_1 = "\ta.Select by ID";
