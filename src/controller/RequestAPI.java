@@ -2,14 +2,27 @@ package controller;
 
 public interface RequestAPI {
 
+    //SERVER ACTIONS
     final String PRESENT = "PRESENTATION";
     final String SHOW_ALL_ONLINE = "SHOW_ALL_ONLINE";
 
-    final String INIT_CHAT = "INIT_CHAT";
+    //Single conversation
+    final String SINGLE_REQUESTED = "SINGLE_CHAT_REQUESTED";
+    final String START_SINGLE = "START_SINGLE";
+    final String SEND_DIRECT_MSG = "TO_SINGLE";
+
+    //Chat codes
     final String CHAT_REQUESTED = "CHAT_REQUESTED";
-    final String ACCEPT_CHAT = "ACCEPT_CHAT";
-    final String REJECT_CHAT = "REJECT_CHAT";
+    final String START_CHAT = "START_CHAT";
     final String TO_CHAT = "TO_CHAT";
+
+    //Client comfirmation
+    final String ALLOW = "ALLOW";
+    final String DENY = "DENY";
+
+    //Modifiers
+    final String BY_ID = "BY_ID";
+    final String BY_NICK = "BY_NICK";
 
     final String INFO_PRESENTATION_START = "PRESENTED to the server as ";
     final String INFO_NO_SERVER_RESPONSE = "NO server response";

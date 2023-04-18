@@ -10,12 +10,14 @@ public interface ConsoleActions {
     
     //Console Options
     final String MENU_OP_1 = "1.Show online users";
-    final String MENU_OP_2 = "2.Chat with user";
+    final String MENU_OP_2 = "2.Start single conversation";
         final String MENU_OP_2_1 = "\ta.Select by ID";
         final String MENU_OP_2_2 = "\tb.Select by nick";
             final String MENU_ALLOW_CHAT = "\ta.Allow";
             final String MENU_DENY_CHAT = "\tb.Deny";
-    final String MENU_OP_3 = "3.Talk to SERVER";
+    final String MENU_OP_3 = "3.New chat";
+    final String MENU_OP_4 = "4.Enter chat";
+    
 
     final String MENU_CHAT_1 = "\t1.Send msg";
     final String MENU_CHAT_EXIT = "\t0.Exit chat";

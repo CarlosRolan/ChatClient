@@ -1,6 +1,6 @@
 package controller;
 
-public interface ResponseCommands {
+public interface StatusCodes {
 
     final String CONNECTION_ESTABLISH = "CONNECTION_ESTABLISH";
     final String CONNECTION_CLOSED = "CONNECTION CLOSED";

@@ -5,13 +5,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
-public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
+import controller.chat.Chat;
+
+public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
+	private ArrayList<Chat> chats = null;
 
 	public String getNick() {
 		return pNick;

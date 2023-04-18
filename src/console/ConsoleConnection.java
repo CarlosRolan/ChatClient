@@ -6,9 +6,9 @@ import java.util.Scanner;
 import controller.Client;
 import controller.Message;
 import controller.RequestAPI;
-import controller.ResponseCommands;
+import controller.StatusCodes;
 
-public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions, ResponseCommands {
+public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions, StatusCodes {
     // Singleton
     private static ConsoleConnection instance;
 
@@ -45,6 +45,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(MENU_OP_1);
         System.out.println(MENU_OP_2);
         System.out.println(MENU_OP_3);
+        System.out.println(MENU_OP_4);
     }
 
     public void startSesion() {
@@ -59,13 +60,13 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         if (!chatting) {
             showMenu();
         }
-        
+
         String op = sc.nextLine();
         if (chatting) {
             sendMsgToChat(op);
         } else {
             selectAction(op);
-        } 
+        }
     }
 
     public void selectAction(String op) {
@@ -74,23 +75,26 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 client.writeMessage(new Message(SHOW_ALL_ONLINE, client.getNick()));
                 break;
             case "2":
-                requestChat();
+                startSingle();
                 break;
             case "3":
                 break;
             case "a":
-                client.writeMessage(new Message(ACCEPT_CHAT, client.getNick(), chatNick, client.getNick() + " ACCEPTS " + chatNick));
+                // We ALLOW the requester
                 chatting = true;
+                client.writeMessage(new Message(ALLOW, client.getNick(), chatNick,
+                        client.getNick() + " ALLOWS " + chatNick));
                 break;
             case "b":
-                client.writeMessage(new Message(REJECT_CHAT, client.getNick(), chatNick));
+                // We DENY the requester
+                client.writeMessage(new Message(DENY, client.getNick(), chatNick));
                 break;
             default:
                 break;
         }
     }
 
-    public void requestChat() {
+    public void startSingle() {
         System.out.println(ACTION_SELECT_USER);
         System.out.println(MENU_OP_2_1);
         System.out.println(MENU_OP_2_2);
@@ -99,18 +103,17 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         if (op.equals("a")) {
             System.out.println(ACTION_SELECT_USER_BY_ID);
             String userID = sc.nextLine();
-            client.writeMessage(new Message(CHAT_REQUESTED, client.getNick(), userID, ACTION_SELECT_USER_BY_ID));
+            client.writeMessage(new Message(SINGLE_REQUESTED, client.getNick(), userID, BY_ID));
         } else if (op.equals("b")) {
             System.out.println(ACTION_SELECT_USER_BY_NICKNAME);
             String userNick = sc.nextLine();
-            client.writeMessage(
-                    new Message(CHAT_REQUESTED, client.getNick(), userNick, ACTION_SELECT_USER_BY_NICKNAME));
+            client.writeMessage(new Message(SINGLE_REQUESTED, client.getNick(), userNick, BY_NICK));
         } else {
             System.out.println(MENU_OP_ERROR);
         }
     }
 
-    public void initChat(Message msg) {
+    public void askingForSingle(Message msg) {
         System.out.println(msg.getEmisor() + " wants to CHAT with you");
         System.out.println(MENU_ALLOW_CHAT);
         System.out.println(MENU_DENY_CHAT);
@@ -122,12 +125,12 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println("==\t\t[You]:\"" + text + "\"");
     }
 
-    public void listenServer() throws IOException {
+    public void listenServer() {
         Message responMessage = client.readMessage();
         handleResponse(responMessage);
     }
 
-    private void readChat(Message responMessage) {
+    private void readSingle(Message responMessage) {
         String emisorNick = responMessage.getEmisor();
         System.out.println("==[" + emisorNick + "]:\"" + responMessage.getText() + "\"");
     }
@@ -138,30 +141,31 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 System.out.println(responMessage.getText());
                 break;
             case ASKED_FOR_PERMISSION:
-                initChat(responMessage);
+                askingForSingle(responMessage);
                 break;
             case WAITING_FOR_PERMISSION:
                 System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
                 chatNick = responMessage.getEmisor();
                 break;
             case CLIENT_NOT_FOUND:
-            chatting = false;
+                chatting = false;
                 System.out.println(responMessage.getAction());
                 break;
             case SELF_REFERENCE:
-            chatting = false;
+                chatting = false;
                 System.out.println(responMessage.getAction());
                 break;
-            case START_CHAT:
+            case START_SINGLE:
                 chatting = true;
-                System.out.println("====" + chatNick + "====");
+                System.out.println("Write .exit to exit the CHAT");
+                System.out.println("====Chatting with [" + chatNick + "]====");
                 break;
-            case REJECT_CHAT:
+            case DENY:
                 chatting = false;
                 System.out.println(responMessage.getText());
                 break;
-            case TO_CHAT:
-                readChat(responMessage);
+            case SEND_DIRECT_MSG:
+                readSingle(responMessage);
                 break;
             default:
                 System.out.println("FROM {" + responMessage.toString() + "}");
@@ -172,11 +176,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     @Override
     public void run() {
         while (true) {
-            try {
-                listenServer();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            listenServer();
         }
     }
 
