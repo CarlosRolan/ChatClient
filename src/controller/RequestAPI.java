@@ -9,12 +9,11 @@ public interface RequestAPI {
     //Single conversation
     final String SINGLE_REQUESTED = "SINGLE_CHAT_REQUESTED";
     final String START_SINGLE = "START_SINGLE";
-    final String SEND_DIRECT_MSG = "TO_SINGLE";
+    final String SEND_DIRECT_MSG = "SEND_DIRECT_MSG";
 
     //Chat codes
     final String CHAT_REQUESTED = "CHAT_REQUESTED";
-    final String START_CHAT = "START_CHAT";
-    final String TO_CHAT = "TO_CHAT";
+    final String START_CHAT = "START_CHAT";;
 
     //Client comfirmation
     final String ALLOW = "ALLOW";

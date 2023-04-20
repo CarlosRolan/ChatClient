@@ -75,7 +75,9 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 client.writeMessage(new Message(SHOW_ALL_ONLINE, client.getNick()));
                 break;
             case "2":
+            chatting = true;
                 startSingle();
+                
                 break;
             case "3":
                 break;
@@ -103,6 +105,12 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         if (op.equals("a")) {
             System.out.println(ACTION_SELECT_USER_BY_ID);
             String userID = sc.nextLine();
+            
+            while(userID.matches(".*[a-b].*")) {
+                System.out.println("Los ID de usuario son numeros enteros sólo");
+                userID = sc.nextLine();
+            }
+            
             client.writeMessage(new Message(SINGLE_REQUESTED, client.getNick(), userID, BY_ID));
         } else if (op.equals("b")) {
             System.out.println(ACTION_SELECT_USER_BY_NICKNAME);
@@ -121,7 +129,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     public void sendMsgToChat(String text) {
-        client.writeMessage(new Message(TO_CHAT, client.getNick(), chatNick, text));
+        client.writeMessage(new Message(SEND_DIRECT_MSG, client.getNick(), chatNick, text));
         System.out.println("==\t\t[You]:\"" + text + "\"");
     }
 
@@ -136,41 +144,44 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     private void handleResponse(Message responMessage) {
-        switch (responMessage.getAction()) {
-            case SHOW_ALL_ONLINE:
-                System.out.println(responMessage.getText());
-                break;
-            case ASKED_FOR_PERMISSION:
-                askingForSingle(responMessage);
-                break;
-            case WAITING_FOR_PERMISSION:
-                System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
-                chatNick = responMessage.getEmisor();
-                break;
-            case CLIENT_NOT_FOUND:
-                chatting = false;
-                System.out.println(responMessage.getAction());
-                break;
-            case SELF_REFERENCE:
-                chatting = false;
-                System.out.println(responMessage.getAction());
-                break;
-            case START_SINGLE:
-                chatting = true;
-                System.out.println("Write .exit to exit the CHAT");
-                System.out.println("====Chatting with [" + chatNick + "]====");
-                break;
-            case DENY:
-                chatting = false;
-                System.out.println(responMessage.getText());
-                break;
-            case SEND_DIRECT_MSG:
-                readSingle(responMessage);
-                break;
-            default:
-                System.out.println("FROM {" + responMessage.toString() + "}");
-                break;
+        if (responMessage != null) {
+            switch (responMessage.getAction()) {
+                case SHOW_ALL_ONLINE:
+                    System.out.println(responMessage.getText());
+                    break;
+                case ASKED_FOR_PERMISSION:
+                    askingForSingle(responMessage);
+                    break;
+                case WAITING_FOR_PERMISSION:
+                    System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
+                    chatNick = responMessage.getEmisor();
+                    break;
+                case CLIENT_NOT_FOUND:
+                    chatting = false;
+                    System.out.println(responMessage.getAction());
+                    break;
+                case SELF_REFERENCE:
+                    chatting = false;
+                    System.out.println(responMessage.getAction());
+                    break;
+                case START_SINGLE:
+                    chatting = true;
+                    System.out.println("Write .exit to exit the CHAT");
+                    System.out.println("====Chatting with [" + chatNick + "]====");
+                    break;
+                case DENY:
+                    chatting = false;
+                    System.out.println(responMessage.getText());
+                    break;
+                case SEND_DIRECT_MSG:
+                    readSingle(responMessage);
+                    break;
+                default:
+                    System.out.println("FROM {" + responMessage.toString() + "}");
+                    break;
+            }
         }
+        
     }
 
     @Override

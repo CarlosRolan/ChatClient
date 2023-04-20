@@ -5,9 +5,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-
-import controller.chat.Chat;
 
 public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 
@@ -15,7 +12,6 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 	private String pNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
-	private ArrayList<Chat> chats = null;
 
 	public String getNick() {
 		return pNick;
@@ -33,18 +29,19 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
 
+			
 			if (presentToServer()) {
 				System.out.println(INFO_CONECXION_ACCEPTED);
 			} else {
 				System.out.println(INFO_CONECXION_REJECTED);
 			}
+			
 
 		} catch (UnknownHostException e) {
-			System.out.println("UnknownHostException");
+			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("IOEx");
+			e.printStackTrace();
 		} catch (NullPointerException e) {
-			System.out.println("Null pointer");
 			e.printStackTrace();
 		}
 	}
@@ -78,10 +75,10 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 		try {
 			return (Message) ois.readObject() ;
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			e.printStackTrace();
+			return null;
+		} catch (NullPointerException e) {
 			return null;
 		}
 	}
