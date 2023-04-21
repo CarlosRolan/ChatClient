@@ -1,4 +1,4 @@
-package log;
+package controller.log;
 
 public class ChatLog {
     

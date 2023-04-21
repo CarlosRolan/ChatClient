@@ -4,7 +4,7 @@ import java.security.Key;
 import javax.swing.InputMap;
 
 import controller.console.ConsoleConnection;
-import log.HistoryUser;
+import controller.log.HistoryUser;
 
 public class Main {
 	public static void main(String[] args) {

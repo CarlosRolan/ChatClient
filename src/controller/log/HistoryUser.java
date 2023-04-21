@@ -1,4 +1,4 @@
-package log;
+package controller.log;
 
 import java.io.File;
 import java.io.FileWriter;

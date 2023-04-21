@@ -6,7 +6,7 @@ import controller.Client;
 import controller.Message;
 import controller.RequestAPI;
 import controller.StatusCodes;
-import log.HistoryUser;
+import controller.log.HistoryUser;
 
 public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions, StatusCodes {
     // Singleton
