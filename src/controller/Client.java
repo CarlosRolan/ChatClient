@@ -28,7 +28,6 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
-
 			
 			if (presentToServer()) {
 				System.out.println(INFO_CONECXION_ACCEPTED);
@@ -36,7 +35,6 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 				System.out.println(INFO_CONECXION_REJECTED);
 			}
 			
-
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -48,6 +46,7 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 
 	private boolean presentToServer() {
 		Message presentation = new Message(PRESENT, getNick());
+		
 		writeMessage(presentation);
 
 		Message presentationResponse = readMessage();
