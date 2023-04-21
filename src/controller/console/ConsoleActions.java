@@ -1,4 +1,4 @@
-package console;
+package controller.console;
 
 public interface ConsoleActions {
 

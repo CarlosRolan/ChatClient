@@ -3,7 +3,7 @@ import java.security.Key;
 
 import javax.swing.InputMap;
 
-import console.ConsoleConnection;
+import controller.console.ConsoleConnection;
 import log.HistoryUser;
 
 public class Main {
