@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
+public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
@@ -17,11 +17,11 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes{
 		return pNick;
 	}
 
-	public Client() throws IOException {
+	public ClientOld() throws IOException {
 		socket = new Socket(HOSTNAME, PORT);
 	}
 
-	public Client(String nick) {
+	public ClientOld(String nick) {
 		try {
 			pNick = nick;
 			socket = new Socket(HOSTNAME, PORT);

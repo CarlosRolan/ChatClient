@@ -1,8 +1,7 @@
 package controller.console;
-
 import java.util.Scanner;
 
-import controller.Client;
+import controller.ClientOld;
 import controller.Message;
 import controller.RequestAPI;
 import controller.StatusCodes;
@@ -25,7 +24,7 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     private String chatNick = null;
     private boolean chatting = false;
 
-    public Client client = null;
+    public ClientOld client = null;
 
     public boolean isChatting() {
         return chatting;
@@ -33,11 +32,11 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
 
     private ConsoleConnection() {
         System.out.println(ACTION_SET_NICK);
-        client = new Client(sc.nextLine());
+        client = new ClientOld(sc.nextLine());
     }
 
     private ConsoleConnection(String nick) {
-        client = new Client(nick);
+        client = new ClientOld(nick);
     }
 
     private void showMenu() {
