@@ -5,15 +5,15 @@ public class Main {
 
   public static void main(String[] args) {
 
-    Connection c = new Connection();
+    ConsoleConnection c = ConsoleConnection.getInstance();
     //We listen the server in a sub-Thread
 
     HistoryUser.getInstance().logIn();
 
-    cc.start();
+    c.start();
     while (true) {
       //Start the Console User Interface
-      cc.startSesion();
+      c.startSesion();
     }
   }
 }
