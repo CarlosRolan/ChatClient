@@ -5,6 +5,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+
+import controller.chats.Chat;
+import controller.chats.Member;
 
 public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 
@@ -12,9 +16,23 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 	private String pNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
+	private ArrayList<Chat> chats = new ArrayList<>();
 
+	public void addChat(Chat c) {
+		chats.add(c);
+	}
 	public String getNick() {
 		return pNick;
+	}
+	public Chat getChat(Chat selected) {
+		int index = chats.indexOf(selected);
+		return chats.get(index);
+	}
+	public Chat getChat(int index) {
+		return chats.get(index);
+	}
+	public ArrayList<Chat> getAllChats() {
+		return chats;
 	}
 
 	public ClientOld() throws IOException {
@@ -81,4 +99,17 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 			return null;
 		}
 	}
+
+	public void requestNewChat(String chatName, String chatDesc) {
+        writeMessage(new Message(RequestAPI.CHAT_REQUESTED, getNick(), chatName, chatDesc));
+    }
+
+
+	
+
+
+
+	
+
+	
 }

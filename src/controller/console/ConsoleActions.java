@@ -20,6 +20,12 @@ public interface ConsoleActions {
     
 
     final String MENU_CHAT_1 = "\t1.Send msg";
+    final String MENU_CHAT_2 = "\t2.Add member";
+    final String MENU_CHAT_3 = "\t3.Delete member";
+    final String MENU_CHAT_4 = "\t4.Manage Permissions";
+        final String MENU_CHAT_4_1 = "\ta.Make Admin";
+        final String MENU_CHAT_4_2 = "\tb.Make Cooperator";
+        final String MENU_CHAT_4_3 = "\tc.Make Regular";
     final String MENU_CHAT_EXIT = "\t0.Exit chat";
 
     final String MENU_OP_ERROR = ">Option incorrect";

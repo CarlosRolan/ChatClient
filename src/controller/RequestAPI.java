@@ -14,7 +14,7 @@ public interface RequestAPI {
     
     //Chat codes
     final String CHAT_REQUESTED = "CHAT_REQUESTED";
-    final String START_CHAT = "START_CHAT";;
+    final String START_CHAT = "START_CHAT";
 
     //Client comfirmation
     final String ALLOW = "ALLOW";
