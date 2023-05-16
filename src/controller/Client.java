@@ -8,9 +8,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import controller.chats.Chat;
-import controller.chats.Member;
 
-public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
+public class Client implements ClientEnviroment, RequestAPI, StatusCodes {
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
@@ -21,38 +20,51 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 	public void addChat(Chat c) {
 		chats.add(c);
 	}
+
 	public String getNick() {
 		return pNick;
 	}
+
 	public Chat getChat(Chat selected) {
 		int index = chats.indexOf(selected);
 		return chats.get(index);
 	}
+
 	public Chat getChat(int index) {
 		return chats.get(index);
 	}
+
+	public Chat getChat(String chatName) {
+		for (Chat iter : chats) {
+			if (chatName.equals(iter.getChatTitle()));
+				
+			return iter;
+		}
+		return null;
+	}
+
 	public ArrayList<Chat> getAllChats() {
 		return chats;
 	}
 
-	public ClientOld() throws IOException {
+	public Client() throws IOException {
 		socket = new Socket(HOSTNAME, PORT);
 	}
 
-	public ClientOld(String nick) {
+	public Client(String nick) {
 		try {
 			pNick = nick;
 			socket = new Socket(HOSTNAME, PORT);
 
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
-			
+
 			if (presentToServer()) {
 				System.out.println(INFO_CONECXION_ACCEPTED);
 			} else {
 				System.out.println(INFO_CONECXION_REJECTED);
 			}
-			
+
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -64,7 +76,7 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 
 	private boolean presentToServer() {
 		Message presentation = new Message(PRESENT, getNick());
-		
+
 		writeMessage(presentation);
 
 		Message presentationResponse = readMessage();
@@ -90,7 +102,7 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 
 	public Message readMessage() {
 		try {
-			return (Message) ois.readObject() ;
+			return (Message) ois.readObject();
 		} catch (ClassNotFoundException e) {
 			return null;
 		} catch (IOException e) {
@@ -100,16 +112,16 @@ public class ClientOld implements ClientEnviroment, RequestAPI, StatusCodes{
 		}
 	}
 
-	public void requestNewChat(String chatName, String chatDesc) {
-        writeMessage(new Message(RequestAPI.CHAT_REQUESTED, getNick(), chatName, chatDesc));
-    }
+	public Chat getChatbyID(long chadID) {
+		for (Chat iter : getAllChats()) {
+			if ( chadID == iter.getChatID()) {
+				return iter;
+			}
+		}
+
+		return null;
+	}
 
 
-	
 
-
-
-	
-
-	
 }

@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Message implements Serializable {
 
@@ -13,6 +14,7 @@ public class Message implements Serializable {
     private String pEmisor = NO_EMISOR;
     private String pReceptor = null;
     private String pText = NO_TEXT;
+    private ArrayList<String> params;
 
     //Getters
     public String getAction() {
@@ -26,6 +28,9 @@ public class Message implements Serializable {
     }
     public String getText() {
         return pText;
+    }
+    public String getParameter(int index) {
+        return params.get(index);
     }
 
     //Constructors
@@ -47,16 +52,16 @@ public class Message implements Serializable {
     public Message(String action) {
         pAction = action;
     }
-    public Message(String ...parameters) {
-        try {
-            pAction = parameters[0];
-            pAction = parameters[1];
-            pAction = parameters[2];
-            pAction = parameters[3];
-        } catch (IndexOutOfBoundsException e) {
-        
+    public Message(String action, String emisor, String receptor, String text, String ...parameters) {
+        pAction = action;
+        pEmisor = emisor;
+        pReceptor = receptor;
+        pText = text;
+        for (int i = 0; i < parameters.length; i++) {
+            params.add(parameters[i]);
         }
     }
+
 
     @Override
     public String toString() {

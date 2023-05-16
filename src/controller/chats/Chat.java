@@ -2,45 +2,63 @@ package controller.chats;
 
 import java.util.ArrayList;
 
-import controller.ClientOld;
-
 public class Chat {
 
     private ArrayList<Member> members = new ArrayList<>();
     private long chatID;
-    private String chatName;
+    private String chatTitle;
     private String chatDesc;
 
     public long getChatID() {
         return chatID;
     }
-    public String getChatName() {
-        return chatName;
+
+    public String getChatTitle() {
+        return chatTitle;
     }
+
     public String getChatDesc() {
         return chatDesc;
     }
-    
-    
 
-    public Chat(long id, String name, String desc, ArrayList<Member> members) {
+    public Chat(long id, String title, String desc, ArrayList<Member> members) {
         chatID = id;
-        chatName = name;
+        chatTitle = title;
         chatDesc = desc;
         this.members = members;
     }
 
-    public Chat(long id, String name, String desc, Member creator) {
+    public Chat(long id, String title, String desc, Member creator) {
         chatID = id;
-        chatName = name;
+        chatTitle = title;
         chatDesc = desc;
-        members.add(creator); 
-        
-        
+        members.add(creator);
     }
 
-    public ArrayList<Member> getMembersList() {
+    public ArrayList<Member> getAllMembers() {
         return members;
     }
-    
+
+    public String listmembers() {
+        String memberList = "";
+        for (Member iter : members) {
+            memberList += iter.toString() + "\n";
+        }
+
+        return memberList;
+    }
+
+    public void addMember(Member newMember) {
+        this.members.add(newMember);
+    }
+
+    public void removeMember(Member deletedMember) {
+        this.members.remove(deletedMember);
+    }
+
+    @Override
+    public String toString() {
+        return "[" + chatID + "]" + chatTitle + "\n" + chatDesc + "\n" + listmembers();
+    }
+
 }
