@@ -1,7 +1,5 @@
 package controller.chats;
 
-import controller.Client;
-
 public class Member {
 
     public enum Permissions {
@@ -21,16 +19,6 @@ public class Member {
     public String getMemberName() {
         return name;
     }
-
-    public static Member newMember(Client cc, boolean isAdmin) {
-        String memberName = cc.getNick();
-
-        if (isAdmin) {
-            return new Member(memberName, Permissions.ADMIN);
-        }
-        return new Member(memberName, Permissions.REGULAR);
-    }
-
 
     public static Member newMember(String nick, boolean isAdmin) {
     

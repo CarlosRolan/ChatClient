@@ -2,6 +2,8 @@ package controller.chats;
 
 import java.util.ArrayList;
 
+import controller.Message;
+
 public class Chat {
 
     private ArrayList<Member> members = new ArrayList<>();
@@ -35,6 +37,16 @@ public class Chat {
         members.add(creator);
     }
 
+    public Chat(Message msg) {
+        chatID = Long.valueOf(msg.getEmisor());
+        chatTitle = msg.getReceptor();
+        chatDesc = msg.getText();
+        for (int i = 0; i < msg.getParameters().length; i++) {
+            Member memberRef = Member.newMember(chatDesc, false);
+            members.add(memberRef);
+        }
+    }
+
     public ArrayList<Member> getAllMembers() {
         return members;
     }
@@ -42,7 +54,7 @@ public class Chat {
     public String listmembers() {
         String memberList = "";
         for (Member iter : members) {
-            memberList += iter.toString() + "\n";
+            memberList += "\t" + iter.toString() + "\n";
         }
 
         return memberList;

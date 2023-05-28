@@ -4,18 +4,19 @@ import java.util.Scanner;
 
 import controller.Client;
 import controller.Message;
+import controller.Message.MsgType;
 import controller.RequestAPI;
-import controller.StatusCodes;
 import controller.chats.Chat;
 import controller.chats.Member;
 
-public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions, StatusCodes {
+public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions {
     // Singleton
     private static ConsoleConnection instance;
 
     private static Scanner sc = new Scanner(System.in);
 
     public static ConsoleConnection getInstance() {
+        System.out.println(INTRO);
         if (instance == null) {
             instance = new ConsoleConnection();
         }
@@ -23,14 +24,14 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
     // --------
 
-    private String chatTitle = null;
-    private boolean chatting = false;
+    private String singleNick = null;
+    private boolean inSingleChat = false;
     private boolean inChatGroup = false;
-    private Chat currentChat = null;
+    private Chat currentChatGroup = null;
     public Client client = null;
 
-    public boolean isChatting() {
-        return chatting;
+    public boolean isInSingleChat() {
+        return inSingleChat;
     }
 
     private ConsoleConnection() {
@@ -47,18 +48,21 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         System.out.println(MENU_OP_1);
         System.out.println(MENU_OP_2);
         System.out.println(MENU_OP_3);
-        System.out.println(MENU_OP_4);
         System.out.println(MENU_OP_EXIT);
     }
 
-    private void showChatMenu() {
-        System.out.println("~~~~" + currentChat.getChatTitle() + "~~~~");
+    private void showChatsMenu() {
+        System.out.println("~~~~" + currentChatGroup.getChatTitle() + "~~~~");
         System.out.println(MENU_CHAT_1);
         System.out.println(MENU_CHAT_2);
         System.out.println(MENU_CHAT_3);
         System.out.println(MENU_CHAT_4);
         System.out.println(MENU_CHAT_5);
         System.out.println(MENU_CHAT_EXIT);
+    }
+
+    public void printIntro() {
+        System.out.println(INTRO);
     }
 
     public void startSesion() {
@@ -70,14 +74,14 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         }
 
         if (inChatGroup) {
-            showChatMenu();
-        } else if (!chatting) {
+            showChatsMenu();
+        } else if (!inSingleChat) {
             showMainMenu();
         }
 
         String op = sc.nextLine();
 
-        if (chatting) {
+        if (inSingleChat) {
             sendDirectMsg(op);
         } else if (inChatGroup) {
             handleChat(op);
@@ -92,29 +96,44 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 showAllUsers();
                 break;
             case "2":
-                chatting = true;
+                inSingleChat = true;
                 startSingle();
-
                 break;
             case "3":
-                newChat();
-                break;
-            case "4":
-                selectChat();
+                chatMenu();
                 break;
             case "a":
                 // We ALLOW the requester
-                chatting = true;
-                client.writeMessage(new Message(ALLOW, client.getNick(), chatTitle,
-                        client.getNick() + " ALLOWS " + chatTitle));
+                inSingleChat = true;
+                client.writeMessage(new Message(MsgType.REQUEST, ALLOW, client.getNick(), singleNick,
+                        client.getNick() + " ALLOWS " + singleNick));
                 break;
             case "b":
                 // We DENY the requester
-                client.writeMessage(new Message(DENY, client.getNick(), chatTitle));
+                client.writeMessage(new Message(MsgType.REQUEST, DENY, client.getNick(), singleNick));
                 break;
             default:
                 break;
         }
+    }
+    
+    private void chatMenu() {
+        System.out.println("1.New Chat");
+        System.out.println("2.Delete chat");
+        System.out.println("3.Select chat--");
+        showAllChats();
+        String op = sc.nextLine();
+        switch (op) {
+            case "1":
+                newChat();
+                break;
+            case "2":
+                break;
+            case "3":
+                selectChat();
+                break;
+        }
+
     }
 
     public void handleChat(String op) {
@@ -127,9 +146,8 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
             // Add member
             case "2":
                 showAllUsers();
-                System.out.println("Select the nick of an user");
-                Member newMember = Member.newMember(sc.nextLine(), false);
-                addMember(currentChat, newMember);
+                System.out.println("Select the ID of an user");
+                addMember(currentChatGroup, sc.nextLine());
                 break;
             // Delete member
             case "3":
@@ -141,81 +159,113 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
                 break;
             // Show members
             case "5":
+                client.writeMessage(
+                        new Message(MsgType.REQUEST, SHOW_ALL_MEMBERS, client.getNick(),
+                                String.valueOf(currentChatGroup.getChatID())));
 
                 break;
             default:
-                chatting = false;
+                inSingleChat = false;
                 inChatGroup = false;
                 break;
         }
     }
 
     public void listenServer() {
-        Message responMessage = client.readMessage();
-        handleResponse(responMessage);
-    }
-
-    private void handleResponse(Message responMessage) {
-        if (responMessage != null) {
-            switch (responMessage.getAction()) {
-                case SHOW_ALL_ONLINE:
-                    System.out.println(responMessage.getText());
+        Message respond = client.readMessage();
+        if (respond != null) {
+            switch (respond.typeOf()) {
+                case REQUEST:
+                    handleRequest(respond);
                     break;
-                case SHOW_ALL_CHATS:
-                    System.out.println(responMessage.getText());
+                case MESSAGE:
+                    handleMessage(respond);
                     break;
-                case ASKED_FOR_PERMISSION:
-                    askingForSingle(responMessage);
-                    break;
-                case WAITING_FOR_PERMISSION:
-                    System.out.println("Waiting for " + responMessage.getEmisor() + " to accept the CHAT");
-                    chatTitle = responMessage.getEmisor();
-                    break;
-                case CLIENT_NOT_FOUND:
-                    chatting = false;
-                    System.out.println(responMessage.getAction());
-                    break;
-                case SELF_REFERENCE:
-                    chatting = false;
-                    System.out.println(responMessage.getAction());
-                    break;
-                case START_SINGLE:
-                    chatting = true;
-                    System.out.println("Write .exit to exit the CHAT");
-                    System.out.println("====Chatting with [" + chatTitle + "]====");
-                    break;
-                case DENY:
-                    chatting = false;
-                    System.out.println(responMessage.getText());
-                    System.out.println("Press enter to go back to the MENU");
-                    break;
-                case SEND_DIRECT_MSG:
-                    readDirect(responMessage);
-                    break;
-
-                case CHAT_REGISTERED:
-                    registerChat(responMessage);
-                    break;
-
-                case START_CHAT:
-
-                    long chatId = Long.valueOf(responMessage.getEmisor());
-                    currentChat = client.getChatbyID(chatId);
-                    chatTitle = currentChat.getChatTitle();
-                    inChatGroup = true;
-                    break;
-                case FROM_CHAT:
-                    System.out.println("[" + responMessage.getEmisor() + "]:" + responMessage.getText());
-                    break;
-
-                case ADD_MEMBER:
-                    addMember(client.getChatbyID(MAX_PRIORITY), null);
-                    break;
-
-                default:
-                    System.out.println("FROM {" + responMessage.toString() + "}");
+                case ERROR:
+                    handleError(respond);
                     break;
             }
+        }
+    }
+
+    private void handleRequest(Message reqRespond) {
+        switch (reqRespond.getAction()) {
+            case ASKED_FOR_PERMISSION:
+                askingForSingle(reqRespond);
+                break;
+            case WAITING_FOR_PERMISSION:
+                System.out.println("Waiting for " + reqRespond.getEmisor() + " to accept the CHAT");
+                singleNick = reqRespond.getEmisor();
+                break;
+            case SHOW_ALL_ONLINE:
+                for (int i = 0; i < reqRespond.getParameters().length; i++) {
+                    System.out.println("\t" + reqRespond.getParameter(i));
+                }
+                break;
+            case SHOW_ALL_CHATS:
+                for (int i = 0; i < reqRespond.getParameters().length; i++) {
+                    System.out.println(i + "--" + reqRespond.getParameter(i));
+                }
+                break;
+            case SHOW_ALL_MEMBERS:
+                for (int i = 0; i < reqRespond.getParameters().length; i++) {
+                    System.out.println(i + "--" + reqRespond.getParameter(i));
+                }
+                break;
+            case START_SINGLE:
+                inSingleChat = true;
+                System.out.println("Write .exit to exit the CHAT");
+                System.out.println("====Chatting with [" + singleNick + "]====");
+                break;
+            case START_CHAT:
+                Chat selectedChat = new Chat(reqRespond);
+                client.addChat(selectedChat);
+                currentChatGroup = selectedChat;
+                inChatGroup = true;
+                break;
+            case DENY:
+                inSingleChat = false;
+                System.out.println(reqRespond.getText());
+                System.out.println("Press enter to go back to the MENU");
+                break;
+            case CHAT_REGISTERED:
+                registerChat(reqRespond);
+                break;
+            case ADD_MEMBER:
+                Member newMember = Member.newMember(reqRespond.getReceptor(), false);
+                client.getChatbyID(Long.valueOf(reqRespond.getEmisor())).addMember(newMember);
+                break;
+        }
+    }
+
+    private void handleMessage(Message responMessage) {
+        switch (responMessage.getAction()) {
+            case SEND_DIRECT_MSG:
+                readDirect(responMessage);
+                break;
+            case FROM_CHAT:
+                System.out.println("[" + responMessage.getEmisor() + "]:" + responMessage.getText());
+                break;
+            default:
+                System.out.println("FROM {" + responMessage.toString() + "}");
+                break;
+        }
+    }
+
+    private void handleError(Message respondError) {
+        switch (respondError.getAction()) {
+            case CLIENT_NOT_FOUND:
+                inSingleChat = false;
+                System.out.println(respondError.getAction());
+                break;
+            case CHAT_NOT_FOUND:
+                inSingleChat = false;
+                System.out.println(CHAT_NOT_FOUND);
+                break;
+            case SELF_REFERENCE:
+                inSingleChat = false;
+                System.out.println(respondError.getAction());
+                break;
         }
     }
 
@@ -227,15 +277,15 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
     }
 
     private void sendMsgToChat(String text) {
-        client.writeMessage(new Message(TO_CHAT, String.valueOf(currentChat.getChatID()), text));
+        client.writeMessage(new Message(MsgType.MESSAGE, TO_CHAT, String.valueOf(currentChatGroup.getChatID()), text));
     }
 
     private void showAllUsers() {
-        client.writeMessage(new Message(SHOW_ALL_ONLINE, client.getNick()));
+        client.writeMessage(new Message(MsgType.REQUEST, SHOW_ALL_ONLINE, client.getNick()));
     }
 
     private void showAllChats() {
-        client.writeMessage((new Message(SHOW_ALL_CHATS, client.getNick())));
+        client.writeMessage((new Message(MsgType.REQUEST, SHOW_ALL_CHATS, client.getNick())));
     }
 
     // CHAT
@@ -244,80 +294,69 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
         String chatTitle = sc.nextLine();
         System.out.println(">Write a DESCRIPTION for the new chat");
         String chatDesc = sc.nextLine();
-        client.writeMessage(new Message(RequestAPI.NEW_CHAT, client.getNick(), chatTitle, chatDesc));
+        client.writeMessage(new Message(MsgType.REQUEST, RequestAPI.NEW_CHAT, client.getNick(), chatTitle, chatDesc));
     }
 
     private void registerChat(Message msg) {
         long chatId = Long.valueOf(msg.getEmisor());
         System.out.println("PARSED CHAT ID:" + chatId);
         Chat chat = new Chat(chatId, msg.getReceptor(),
-                msg.getText(), Member.newMember(client, true));
+                msg.getText(), Member.newMember(client.getNick(), true));
         System.out.println(chat.toString());
         client.addChat(chat);
-        currentChat = client.getChatbyID(chatId);
-        chatTitle = currentChat.getChatTitle();
+        currentChatGroup = chat;
         inChatGroup = true;
     }
 
-    private void addMember(Chat chat, Member newMember) {
-        chat.addMember(newMember);
-        currentChat = chat;
-        client.writeMessage(new Message(ADD_MEMBER, String.valueOf(chat.getChatID()), newMember.getMemberName()));
+    private void addMember(Chat chat, String memberID) {
+        client.writeMessage(
+                new Message(MsgType.REQUEST, ADD_MEMBER, String.valueOf(chat.getChatID()), memberID));
     }
 
     private void selectChat() {
-        showAllChats();
+        System.out.println("Select a CHAT by his ID");
 
-        System.out.println("<Write the chat id [XXX]");
         String chatID = sc.nextLine();
 
         while (chatID.matches(".*[a-b].*")) {
             System.out.println("Los ID de chats son numeros enteros sólo");
             chatID = sc.nextLine();
         }
-
-        client.writeMessage(new Message(START_CHAT, chatID));
-
+        client.writeMessage(new Message(MsgType.REQUEST, START_CHAT, chatID));
     }
+
+
 
     // SINGLE AND DIRECT COMUNICATION PEER TO PEER
     public void startSingle() {
-        System.out.println(ACTION_SELECT_USER);
-        System.out.println(MENU_OP_2_1);
-        System.out.println(MENU_OP_2_2);
-        String op = sc.nextLine();
 
-        if (op.equals("a")) {
-            System.out.println(ACTION_SELECT_USER_BY_ID);
-            String userID = sc.nextLine();
+        showAllUsers();
 
-            while (userID.matches(".*[a-b].*")) {
-                System.out.println("Los ID de usuario son numeros enteros sólo");
-                userID = sc.nextLine();
-            }
+        System.out.println(ACTION_SELECT_USER_BY_ID);
+        String userID = sc.nextLine();
 
-            client.writeMessage(new Message(SINGLE_REQUESTED, client.getNick(), userID, BY_ID));
-        } else if (op.equals("b")) {
-            System.out.println(ACTION_SELECT_USER_BY_NICKNAME);
-            String userNick = sc.nextLine();
-            client.writeMessage(new Message(SINGLE_REQUESTED, client.getNick(), userNick, BY_NICK));
-        } else {
-            System.out.println(MENU_OP_ERROR);
+        while (userID.matches(".*[a-b].*")) {
+            System.out.println("Los ID de usuario son numeros enteros sólo");
+            userID = sc.nextLine();
         }
+
+        client.writeMessage(new Message(MsgType.REQUEST, SINGLE_REQUESTED, client.getNick(), userID, BY_ID));
+        System.out.println(MENU_OP_ERROR);
+
     }
 
     public void askingForSingle(Message msg) {
         System.out.println(msg.getEmisor() + " wants to CHAT with you");
         System.out.println(MENU_ALLOW_CHAT);
         System.out.println(MENU_DENY_CHAT);
-        chatTitle = msg.getEmisor();
+        singleNick = msg.getEmisor();
     }
 
     private void readDirect(Message responMessage) {
         String emisorNick = responMessage.getEmisor();
 
         if (responMessage.getText().equals(EXIT_SINGLE)) {
-            chatting = false;
+            inSingleChat = false;
             System.out.println("==[" + emisorNick + "]: has LEFT the chat");
             System.out.println("Press enter to go back to the MENU");
         } else {
@@ -327,11 +366,12 @@ public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActi
 
     public void sendDirectMsg(String text) {
         if (!text.equals(".exit")) {
-            client.writeMessage(new Message(SEND_DIRECT_MSG, client.getNick(), chatTitle, text));
+            client.writeMessage(new Message(MsgType.MESSAGE, SEND_DIRECT_MSG, client.getNick(), singleNick, text));
             System.out.println("==\t\t[You]:\"" + text + "\"");
         } else {
-            chatting = false;
-            client.writeMessage(new Message(SEND_DIRECT_MSG, client.getNick(), chatTitle, EXIT_SINGLE));
+            inSingleChat = false;
+            client.writeMessage(
+                    new Message(MsgType.MESSAGE, SEND_DIRECT_MSG, client.getNick(), singleNick, EXIT_SINGLE));
         }
 
     }

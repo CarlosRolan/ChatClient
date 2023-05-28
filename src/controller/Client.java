@@ -7,9 +7,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import controller.Message.MsgType;
 import controller.chats.Chat;
 
-public class Client implements ClientEnviroment, RequestAPI, StatusCodes {
+public class Client implements ClientEnviroment, RequestAPI {
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
@@ -36,8 +37,9 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes {
 
 	public Chat getChat(String chatName) {
 		for (Chat iter : chats) {
-			if (chatName.equals(iter.getChatTitle()));
-				
+			if (chatName.equals(iter.getChatTitle()))
+				;
+
 			return iter;
 		}
 		return null;
@@ -75,7 +77,7 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes {
 	}
 
 	private boolean presentToServer() {
-		Message presentation = new Message(PRESENT, getNick());
+		Message presentation = new Message(MsgType.REQUEST, PRESENT, getNick());
 
 		writeMessage(presentation);
 
@@ -114,14 +116,12 @@ public class Client implements ClientEnviroment, RequestAPI, StatusCodes {
 
 	public Chat getChatbyID(long chadID) {
 		for (Chat iter : getAllChats()) {
-			if ( chadID == iter.getChatID()) {
+			if (chadID == iter.getChatID()) {
 				return iter;
 			}
 		}
 
 		return null;
 	}
-
-
 
 }

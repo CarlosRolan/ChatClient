@@ -23,6 +23,7 @@ public interface RequestAPI {
     final String GET_CHAT = "GET_CHAT";
     final String TO_CHAT = "TO_CHAT";
     final String FROM_CHAT = "FROM_CHAT";
+    final String SHOW_ALL_MEMBERS = "SHOW_ALL_MEMBERS";
 
     // Client comfirmation
     final String ALLOW = "ALLOW";
@@ -42,5 +43,17 @@ public interface RequestAPI {
 
     final String ERROR_PRESENTATION = "Could not present ";
     final String ERROR_SERVER_CONNECTION = "Could not read response from server";
+
+    final String CONNECTION_ESTABLISH = "CONNECTION_ESTABLISH";
+    final String CONNECTION_CLOSED = "CONNECTION CLOSED";
+
+    final String PRESENTATION_SUCCES = "PRESENTATION_SUCCES";
+
+    final String ASKED_FOR_PERMISSION = "ASKED_FOR_PERMISSION";
+    final String WAITING_FOR_PERMISSION = "WAITING_FOR_PERMISSION";
+
+    final String CLIENT_NOT_FOUND = "There is not an ONLINE user with that userID or nickName";
+    final String SELF_REFERENCE = "You cannot talk with yourself";
+    final String CHAT_NOT_FOUND = "There is no chat with that ID";
 
 }
