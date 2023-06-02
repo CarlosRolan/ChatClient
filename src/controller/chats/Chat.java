@@ -2,7 +2,8 @@ package controller.chats;
 
 import java.util.ArrayList;
 
-import controller.Message;
+import controller.Msg;
+
 
 public class Chat {
 
@@ -37,7 +38,7 @@ public class Chat {
         members.add(creator);
     }
 
-    public Chat(Message msg) {
+    public Chat(Msg msg) {
         chatID = Long.valueOf(msg.getEmisor());
         chatTitle = msg.getReceptor();
         chatDesc = msg.getText();

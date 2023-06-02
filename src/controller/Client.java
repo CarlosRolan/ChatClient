@@ -7,10 +7,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-import controller.Message.MsgType;
+import api.RequestCodes;
+import controller.Msg.MsgType;
 import controller.chats.Chat;
 
-public class Client implements ClientEnviroment, RequestAPI {
+public class Client implements ClientEnviroment, RequestCodes {
 
 	private Socket socket = null;
 	private String pNick = "Nameless";
@@ -77,11 +78,12 @@ public class Client implements ClientEnviroment, RequestAPI {
 	}
 
 	private boolean presentToServer() {
-		Message presentation = new Message(MsgType.REQUEST, PRESENT, getNick());
-
+		Msg presentation = new Msg(MsgType.REQUEST);
+		presentation.setAction(PRESENT);
+		presentation.setEmisor(getNick());
 		writeMessage(presentation);
 
-		Message presentationResponse = readMessage();
+		Msg presentationResponse = readMessage();
 		if (presentationResponse.getAction().equals(PRESENTATION_SUCCES)) {
 			return true;
 		} else {
@@ -93,7 +95,7 @@ public class Client implements ClientEnviroment, RequestAPI {
 		return socket.isConnected();
 	}
 
-	public void writeMessage(Message msg) {
+	public void writeMessage(Msg msg) {
 		try {
 			oos.writeObject(msg);
 			oos.flush();
@@ -102,9 +104,9 @@ public class Client implements ClientEnviroment, RequestAPI {
 		}
 	}
 
-	public Message readMessage() {
+	public Msg readMessage() {
 		try {
-			return (Message) ois.readObject();
+			return (Msg) ois.readObject();
 		} catch (ClassNotFoundException e) {
 			return null;
 		} catch (IOException e) {
