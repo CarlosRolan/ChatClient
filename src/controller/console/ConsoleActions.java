@@ -2,6 +2,18 @@ package controller.console;
 
 public interface ConsoleActions {
 
+    final String OP_1 = "1";
+    final String OP_2 = "2";
+    final String OP_3 = "3";
+    final String OP_4 = "4";
+    final String OP_5 = "5";
+    final String OP_6 = "6";
+
+    final String OP_YES = "a";
+    final String OP_NO = "b";
+
+    final String OP_EXIT = "0";
+
     // Console Intro
     final String INTRO = "==WELLCOME==\nThis chat was created by Carlos Rolán.\nThis app is handled by a server and all connections are supervised by it.";
 

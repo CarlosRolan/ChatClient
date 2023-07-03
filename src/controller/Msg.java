@@ -124,4 +124,33 @@ public class Msg implements Serializable {
         PACKAGE_TYPE = TYPE;
     }
 
+    public String showParameters() {
+        boolean hasParameters = false;
+        String params = "";
+        try {
+            for (int i = 0; i < parameters.length; i++) {
+                params += parameters[i] + ",";
+                if (i > 0) {
+                    hasParameters = true;
+                }
+            }
+
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("haha");
+            return null;
+        }
+        if (hasParameters) {
+            return params;
+        } else {
+            return null;
+        }
+
+    }
+
+    @Override
+    public String toString() {
+        return "[" + action + "]\n" + "Headers:[" + headers[0] + ", " + headers[1] + "]\n" + "Parameters:["
+                + showParameters() + "]\n" + "Body:{" + body + "}";
+    }
+
 }
