@@ -1,16 +1,16 @@
 package GUI;
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Panel;
+import java.awt.TextField;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import java.awt.BorderLayout;
-import java.awt.Panel;
-import javax.swing.JLabel;
-import java.awt.Font;
-import java.awt.TextField;
-import javax.swing.JButton;
-import java.awt.FlowLayout;
 
 public class MainView extends JFrame {
 

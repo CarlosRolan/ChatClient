@@ -7,8 +7,10 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import api.RequestCodes;
-import controller.Msg.MsgType;
+import com.Msg;
+import com.Msg.MsgType;
+import com.RequestCodes;
+
 
 public class Connection implements ClientEnviroment, RequestCodes {
 
@@ -80,7 +82,7 @@ public class Connection implements ClientEnviroment, RequestCodes {
 		writeMessage(presentation);
 
 		Msg presentationResponse = readMessage();
-		if (presentationResponse.getAction().equals(PRESENTATION_SUCCES)) {
+		if (presentationResponse.getAction().equals(INFO_PRESENTATION_SUCCES)) {
 			mId = Integer.parseInt(presentationResponse.getReceptor());
 			return true;
 		} else {

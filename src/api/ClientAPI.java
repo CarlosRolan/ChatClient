@@ -1,8 +1,8 @@
 package api;
 
-import controller.Msg;
-import controller.Msg.MsgType;
-
+import com.Msg;
+import com.Msg.MsgType;
+import com.RequestCodes;
 public class ClientAPI implements RequestCodes {
 
     public static ClientAPI newRequest() {
@@ -15,7 +15,7 @@ public class ClientAPI implements RequestCodes {
 
     public Msg showAllOnline() {
         Msg msgOut = new Msg(MsgType.REQUEST);
-        msgOut.setAction(SHOW_ALL_ONLINE);
+        msgOut.setAction(REQ_SHOW_ALL_ONLINE);
 
         if ("".equals(msgOut)) {
             return null;
@@ -39,9 +39,9 @@ public class ClientAPI implements RequestCodes {
         Msg msgOut = new Msg(MsgType.REQUEST);
 
         if (candidateRespond) {
-            msgOut.setAction(ALLOW);
+            msgOut.setAction(REQ_ALLOW);
         } else {
-            msgOut.setAction(DENY);
+            msgOut.setAction(REQ_DENY);
         }
         msgOut.setEmisor(candidateId);
         msgOut.setReceptor(requesterId);

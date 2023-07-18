@@ -5,11 +5,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import com.Msg;
+import com.RequestCodes;
+
 import api.ClientAPI;
-import api.RequestCodes;
 import controller.ClientEnviroment;
 import controller.Connection;
-import controller.Msg;
 
 public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions, ClientEnviroment {
     // Singleton
@@ -128,10 +129,10 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
     private void handleRequest(Msg reqRespond) {
         System.out.println("\n" + reqRespond.toString());
         switch (reqRespond.getAction()) {
-            case SHOW_ALL_ONLINE:
+            case REQ_SHOW_ALL_ONLINE:
                 System.out.println(reqRespond.showParameters());
                 break;
-            case ASKED_FOR_PERMISSION:
+            case REQ_ASKED_FOR_PERMISSION:
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getEmisor();
                 clearConsole();
@@ -139,10 +140,10 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 System.out.println(MENU_ALLOW_SINGLE);
                 System.out.println(MENU_DENY_SINGLE);
                 break;
-            case WAITING_FOR_PERMISSION:
+            case REQ_WAITING_FOR_PERMISSION:
                 System.out.println(reqRespond.getParameter(0) + " pending to accept");
                 break;
-            case START_SINGLE:
+            case REQ_START_SINGLE:
                 inSingleChat = true;
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getReceptor();
@@ -164,7 +165,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         System.out.println(ANSI_RED);
         System.out.println(respondError.toString());
         switch (respondError.getAction()) {
-            case CLIENT_NOT_FOUND:
+            case ERROR_CLIENT_NOT_FOUND:
                 break;
             default:
                 break;
