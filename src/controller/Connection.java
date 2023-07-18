@@ -12,10 +12,15 @@ import controller.Msg.MsgType;
 
 public class Connection implements ClientEnviroment, RequestCodes {
 
+	private int mId;
 	private Socket mSocket = null;
 	private String mNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
+
+	public String getConId() {
+		return String.valueOf(mId);
+	}
 
 	public String getNick() {
 		return mNick;
@@ -29,7 +34,7 @@ public class Connection implements ClientEnviroment, RequestCodes {
 		do {
 			exception = false;
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			} catch (Exception e) {
 
 			}
@@ -50,7 +55,7 @@ public class Connection implements ClientEnviroment, RequestCodes {
 				System.out.print("\033[H\033[2J");
 				System.out.println("Unable to coonect to the server. Trying." + dots);
 				dots = dots.concat(".");
-				if (dots.length() == 5) {
+				if (dots.length() == 3) {
 					dots = "";
 				}
 				System.out.flush();
@@ -76,6 +81,7 @@ public class Connection implements ClientEnviroment, RequestCodes {
 
 		Msg presentationResponse = readMessage();
 		if (presentationResponse.getAction().equals(PRESENTATION_SUCCES)) {
+			mId = Integer.parseInt(presentationResponse.getReceptor());
 			return true;
 		} else {
 			return false;
@@ -84,8 +90,10 @@ public class Connection implements ClientEnviroment, RequestCodes {
 
 	public void writeMessage(Msg msg) {
 		try {
-			oos.writeObject(msg);
-			oos.flush();
+			if (msg != null) {
+				oos.writeObject(msg);
+				oos.flush();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

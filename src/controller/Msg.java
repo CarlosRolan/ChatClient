@@ -12,10 +12,10 @@ public class Msg implements Serializable {
     }
 
     public final MsgType PACKAGE_TYPE;
-    private String action;
-    private String[] headers = new String[2];
-    private String[] parameters = new String[3];
-    private String body;
+    private String action = "NO_ACTION";
+    private String[] headers = { "no_emisor", "no_receptor" };
+    private String[] parameters = { "none" };
+    private String body = "empty";
 
     // Getters
     /**
@@ -125,32 +125,21 @@ public class Msg implements Serializable {
     }
 
     public String showParameters() {
-        boolean hasParameters = false;
         String params = "";
         try {
             for (int i = 0; i < parameters.length; i++) {
                 params += parameters[i] + ",";
-                if (i > 0) {
-                    hasParameters = true;
-                }
             }
-
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("haha");
-            return null;
-        }
-        if (hasParameters) {
             return params;
-        } else {
-            return null;
+        } catch (IndexOutOfBoundsException e) {
+            return parameters[0];
         }
 
     }
 
     @Override
     public String toString() {
-        return "[" + action + "]\n" + "Headers:[" + headers[0] + ", " + headers[1] + "]\n" + "Parameters:["
+        return PACKAGE_TYPE + "[" + action + "]\n" + "Headers:[" + headers[0] + ", " + headers[1] + "]\n" + "Parameters:["
                 + showParameters() + "]\n" + "Body:{" + body + "}";
     }
-
 }

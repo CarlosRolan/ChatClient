@@ -10,7 +10,7 @@ public interface RequestCodes {
     final String SINGLE_REQUESTED = "SINGLE_CHAT_REQUESTED";
     final String START_SINGLE = "START_SINGLE";
     final String EXIT_SINGLE = "EXIT_SINGLE";
-    final String SEND_DIRECT_MSG = "SEND_DIRECT_MSG";
+    final String DIRECT_MSG = "SEND_DIRECT_MSG";
 
     // Chat codes
     final String NEW_CHAT = "NEW_CHAT";
@@ -51,8 +51,8 @@ public interface RequestCodes {
     final String ASKED_FOR_PERMISSION = "ASKED_FOR_PERMISSION";
     final String WAITING_FOR_PERMISSION = "WAITING_FOR_PERMISSION";
 
-    final String CLIENT_NOT_FOUND = "There is not an ONLINE user with that userID or nickName";
-    final String SELF_REFERENCE = "You cannot talk with yourself";
+    final String CLIENT_NOT_FOUND = "CLIENT_NOT_FOUND";
+    final String SELF_REFERENCE = "SELF_REFERENCE";
     final String CHAT_NOT_FOUND = "There is no chat with that ID";
 
 }

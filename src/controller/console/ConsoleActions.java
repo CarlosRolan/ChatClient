@@ -2,6 +2,15 @@ package controller.console;
 
 public interface ConsoleActions {
 
+    final String ANSI_RESET = "\u001B[0m";
+    final String ANSI_BLACK = "\u001B[30m";
+    final String ANSI_RED = "\u001B[31m";
+    final String ANSI_GREEN = "\u001B[32m";
+    final String ANSI_YELLOW = "\u001B[33m";
+    final String ANSI_BLUE = "\u001B[34m";
+    final String ANSI_PURPLE = "\u001B[35m";
+    final String ANSI_CYAN = "\u001B[36m";
+
     final String OP_1 = "1";
     final String OP_2 = "2";
     final String OP_3 = "3";
@@ -19,20 +28,20 @@ public interface ConsoleActions {
 
     // User Input Actions
     final String ACTION_SET_NICK = ">Write a nickname to identify yourself";
-    final String ACTION_SELECT_USER = ">Select an avaliable user to start chatting";
-    final String ACTION_SELECT_USER_BY_ID = ">Select an ID of the user you want to chat with";
-    final String ACTION_SELECT_USER_BY_NICKNAME = ">Select an NICK of the user you want to chat with";
+    final String ACTION_SELECT_USER_BY_ID = ">Select an ID of the user you want to chat with [id]";
 
-    final String CHAT_SELECT = ">Select an avaliable CHAT to start chatting";
-    final String CHAT_SELECT_USER_BY_ID = ">Select an ID of the CHAT you want to chat with";
-    final String CHAT_SELECT_USER_BY_NICKNAME = ">Select an TITLE of the CHAT you want to chat with";
+    final String ACTION_CHAT_SELECT = ">Select an avaliable CHAT to start chatting";
+    final String ACTION_CHAT_SELECT_USER = ">Select an ID of the CHAT you want to chat with";
+
+    final String ACTION_SEND_MSG_TO_SINGLE = ">Write a msg to";
+    final String ACTION_EXIT_SINGLE = "write '.exit' to exit the chat";
 
     // Console OCHAT
     final String MENU_OP_1 = "1.Show online users";
     final String MENU_OP_2 = "2.Start single conversation";
-    final String MENU_OP_2_1 = "\ta.Select by ID";
-    final String MENU_ALLOW_CHAT = "\ta.Allow";
-    final String MENU_DENY_CHAT = "\tb.Deny";
+    final String MENU_OP_2_1 = "a.Select by ID";
+    final String MENU_ALLOW_SINGLE = "\ta.Allow";
+    final String MENU_DENY_SINGLE = "\tb.Deny";
     final String MENU_OP_3 = "3.Chats";
     final String MENU_OP_EXIT = "0.Exit";
 
