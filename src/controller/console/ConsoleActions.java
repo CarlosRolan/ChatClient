@@ -2,14 +2,16 @@ package controller.console;
 
 public interface ConsoleActions {
 
-    final String ANSI_RESET = "\u001B[0m";
-    final String ANSI_BLACK = "\u001B[30m";
-    final String ANSI_RED = "\u001B[31m";
-    final String ANSI_GREEN = "\u001B[32m";
-    final String ANSI_YELLOW = "\u001B[33m";
-    final String ANSI_BLUE = "\u001B[34m";
-    final String ANSI_PURPLE = "\u001B[35m";
-    final String ANSI_CYAN = "\u001B[36m";
+    final String CLEAR_CONSOLE = "\033[H\033[2J";
+
+    final String COLOR_RESET = "\u001B[0m";
+    final String COLOR_BLACK = "\u001B[30m";
+    final String COLOR_RED = "\u001B[31m";
+    final String COLOR_GREEN = "\u001B[32m";
+    final String COLOR_YELLOW = "\u001B[33m";
+    final String COLOR_BLUE = "\u001B[34m";
+    final String COLOR_PURPLE = "\u001B[35m";
+    final String COLOR_CYAN = "\u001B[36m";
 
     final String OP_1 = "1";
     final String OP_2 = "2";
@@ -34,7 +36,8 @@ public interface ConsoleActions {
     final String ACTION_CHAT_SELECT_USER = ">Select an ID of the CHAT you want to chat with";
 
     final String ACTION_SEND_MSG_TO_SINGLE = ">Write a msg to";
-    final String ACTION_EXIT_SINGLE = "write '.exit' to exit the chat";
+    final String ACTION_EXIT_SINGLE = ">.exit";
+    final String ACTION_SELECT_SINGLE = ">Please select a number from the list";
 
     // Console OCHAT
     final String MENU_OP_1 = "1.Show online users";
@@ -56,4 +59,8 @@ public interface ConsoleActions {
     final String MENU_CHAT_EXIT = "\t0.Exit chat";
 
     final String MENU_OP_ERROR = ">Option incorrect";
+
+    final String DATE_FORMAT = "HH:mm:ss";
+
+    final String LISTENNIG = "Listening server on port ";
 }

@@ -13,6 +13,7 @@ import controller.ClientEnviroment;
 import controller.Connection;
 
 public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions, ClientEnviroment {
+
     // Singleton
     private static ConsoleConnection instance;
 
@@ -25,8 +26,8 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         }
         return instance;
     }
-
     // --------
+
     public boolean inSingleChat = false;
     private Connection c = null;
     private String singleId = "0";
@@ -46,13 +47,13 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
     }
 
     private void clearConsole() {
-        System.out.print("\033[H\033[2J");
-        System.out.println(ANSI_RESET);
+        System.out.print(CLEAR_CONSOLE);
+        System.out.print(COLOR_RESET);
         System.out.flush();
     }
 
     private String getCurrentTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DATE_FORMAT);
         LocalDateTime now = LocalDateTime.now();
         return dtf.format(now);
     }
@@ -90,7 +91,6 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 } else if (OP_NO.equals(op)) {
                     inSingleChat = false;
                     msgOut = ClientAPI.newRequest().permissionRespond(false, singleId, c.getConId(), c.getNick());
-                } else {
                 }
                 break;
         }
@@ -99,16 +99,23 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
 
     private void selectSingleAction(String op) {
         if (op.equals(".exit")) {
+            exitSingle();
             inSingleChat = false;
             singleId = null;
             singleNick = null;
         } else {
-            sendToSingle(op);
+            if (inSingleChat || singleId != null || singleNick != null) {
+                sendToSingle(op);
+            }
         }
     }
 
+    private void exitSingle() {
+        c.writeMessage(ClientAPI.newRequest().exitSingle(c.getConId(), singleId));
+    }
+
     private void sendToSingle(String txt) {
-        c.writeMessage(ClientAPI.newRequest().sendDirectMsg(c.getConId(), singleId, txt));
+        c.writeMessage(ClientAPI.newRequest().sendSingleMsg(c.getConId(), singleId, txt));
     }
 
     private String selectSingle() {
@@ -118,7 +125,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
             try {
                 userID = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
-                System.out.println("Please select a number from the list");
+                System.out.println(ACTION_SELECT_SINGLE);
                 continue;
             }
             return String.valueOf(userID);
@@ -127,7 +134,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
     }
 
     private void handleRequest(Msg reqRespond) {
-        System.out.println("\n" + reqRespond.toString());
+        // System.out.println("\n" + reqRespond.toString());
         switch (reqRespond.getAction()) {
             case REQ_SHOW_ALL_ONLINE:
                 System.out.println(reqRespond.showParameters());
@@ -136,7 +143,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getEmisor();
                 clearConsole();
-                System.out.println("\n--" + singleNick + " wants to chat with you--");
+                System.out.println("--" + singleNick + " wants to chat with you--");
                 System.out.println(MENU_ALLOW_SINGLE);
                 System.out.println(MENU_DENY_SINGLE);
                 break;
@@ -149,23 +156,33 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 singleId = reqRespond.getReceptor();
                 System.out.println(singleNick + " accepts the invitation");
                 break;
+            case REQ_EXIT_SINGLE:
+                System.out.println(
+                        singleNick + "[" + singleId + "]" + " has left the chat, press ENTER to back to the MAIN MENU");
+                inSingleChat = false;
+                singleNick = null;
+                singleId = null;
         }
     }
 
     private void handleMessage(Msg responMessage) {
-        System.out.println(ANSI_GREEN);
+        System.out.print(COLOR_GREEN);
         switch (responMessage.getAction()) {
-            case DIRECT_MSG:
-                System.out.print("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
+            case MSG_SINGLE_MSG:
+                System.out.println("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
                 break;
         }
     }
 
     private void handleError(Msg respondError) {
-        System.out.println(ANSI_RED);
-        System.out.println(respondError.toString());
+        System.out.print(COLOR_RED);
+        // System.out.println(respondError.toString());
         switch (respondError.getAction()) {
             case ERROR_CLIENT_NOT_FOUND:
+                System.out.println("There is no client with that ID");
+                break;
+            case ERROR_SELF_REFERENCE:
+                System.out.println("You cannot talk with your self");
                 break;
             default:
                 break;
@@ -187,7 +204,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                     break;
             }
         }
-        System.out.println(ANSI_RESET);
+        System.out.print(COLOR_RESET);
     }
 
     // PUBLIC METHODS
@@ -200,7 +217,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
             showSingleMenu();
             selectSingleAction(sc.nextLine());
         } else {
-            System.out.println("Listening server on port " + PORT);
+            System.out.println(LISTENNIG + PORT);
             showMainMenu();
             selectMainAction(sc.nextLine());
         }

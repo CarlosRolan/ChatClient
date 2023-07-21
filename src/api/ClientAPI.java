@@ -3,6 +3,7 @@ package api;
 import com.Msg;
 import com.Msg.MsgType;
 import com.RequestCodes;
+
 public class ClientAPI implements RequestCodes {
 
     public static ClientAPI newRequest() {
@@ -35,7 +36,8 @@ public class ClientAPI implements RequestCodes {
         return msgOut;
     }
 
-    public Msg permissionRespond(boolean candidateRespond, String requesterId, String candidateId, String candidateNick) {
+    public Msg permissionRespond(boolean candidateRespond, String requesterId, String candidateId,
+            String candidateNick) {
         Msg msgOut = new Msg(MsgType.REQUEST);
 
         if (candidateRespond) {
@@ -50,15 +52,26 @@ public class ClientAPI implements RequestCodes {
         return msgOut;
     }
 
-    public Msg sendDirectMsg(String emisorId, String receptorId, String msgTxt) {
+    public Msg sendSingleMsg(String emisorId, String receptorId, String msgTxt) {
         Msg msgOut = new Msg(MsgType.MESSAGE);
 
-        msgOut.setAction(DIRECT_MSG);
+        msgOut.setAction(MSG_SINGLE_MSG);
         msgOut.setEmisor(emisorId);
         msgOut.setReceptor(receptorId);
         msgOut.setBody(msgTxt);
 
         return msgOut;
+    }
+
+    public Msg exitSingle(String emisorId, String receptorId) {
+        Msg msgOut = new Msg(MsgType.REQUEST);
+
+        msgOut.setAction(REQ_EXIT_SINGLE);
+        msgOut.setEmisor(emisorId);
+        msgOut.setReceptor(receptorId);
+
+        return msgOut;
+
     }
 
 }
