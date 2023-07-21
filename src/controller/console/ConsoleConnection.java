@@ -6,11 +6,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import com.Connection;
 import com.Msg;
 import com.RequestCodes;
 
 import api.ClientAPI;
-import controller.Connection;
+
 
 public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions {
 
