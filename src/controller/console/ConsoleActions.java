@@ -2,16 +2,62 @@ package controller.console;
 
 public interface ConsoleActions {
 
-    final String CLEAR_CONSOLE = "\033[H\033[2J";
+    enum ConsoleColor {
+        BLACK("\u001B[30m"),
+        RED("\u001B[31m"),
+        GREEN("\u001B[32m"),
+        YELLOW("\u001B[33m"),
+        BLUE("\u001B[34m"),
+        PURPLE("\u001B[35m"),
+        CYAN("\u001B[36m"),
+        DEFAULT("\u001B[0m");
 
-    final String COLOR_RESET = "\u001B[0m";
-    final String COLOR_BLACK = "\u001B[30m";
-    final String COLOR_RED = "\u001B[31m";
-    final String COLOR_GREEN = "\u001B[32m";
-    final String COLOR_YELLOW = "\u001B[33m";
-    final String COLOR_BLUE = "\u001B[34m";
-    final String COLOR_PURPLE = "\u001B[35m";
-    final String COLOR_CYAN = "\u001B[36m";
+        public String getColor() {
+            return colorCode;
+        }
+
+        private String colorCode;
+
+        private ConsoleColor(String colorAnsiiCode) {
+            colorCode = colorAnsiiCode;
+        }
+    }
+
+    default void clearConsole() {
+        System.out.print(CLEAR_CONSOLE);
+        System.out.print(ConsoleColor.DEFAULT.getColor());
+        System.out.flush();
+    }
+
+    default void changeConsoleColor(ConsoleColor color) {
+        String ansiCode = null;
+        switch (color) {
+            case BLACK:
+                ansiCode = ConsoleColor.BLACK.getColor();
+                break;
+            case BLUE:
+                ansiCode = ConsoleColor.BLUE.getColor();
+                break;
+            case CYAN:
+                ansiCode = ConsoleColor.CYAN.getColor();
+                break;
+            case PURPLE:
+                ansiCode = ConsoleColor.PURPLE.getColor();
+                break;
+            case GREEN:
+                ansiCode = ConsoleColor.GREEN.getColor();
+                break;
+            case RED:
+                ansiCode = ConsoleColor.RED.getColor();
+                break;
+            default:
+                ansiCode = ConsoleColor.DEFAULT.getColor();
+                break;
+        }
+        System.out.print(ansiCode);
+    }
+
+    final String CLEAR_CONSOLE = "\033[H\033[2J";
 
     final String OP_1 = "1";
     final String OP_2 = "2";
@@ -57,10 +103,11 @@ public interface ConsoleActions {
     final String MENU_CHAT_4_3 = "\tc.Make Regular";
     final String MENU_CHAT_5 = "\t5.Show Members";
     final String MENU_CHAT_EXIT = "\t0.Exit chat";
-
     final String MENU_OP_ERROR = ">Option incorrect";
 
     final String DATE_FORMAT = "HH:mm:ss";
 
-    final String LISTENNIG = "Listening server on port ";
+    final String _PENDING_TO_ACCEPT = " pending to accept";
+    final String _ACCEPTS_THE_INVITATION = " accepts the invitation";
+    final String _LEFT_SINGLE_CHAT = " has left the chat, press ENTER to back to the MAIN MENU";
 }

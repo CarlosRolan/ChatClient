@@ -1,5 +1,6 @@
 package controller.console;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
@@ -9,10 +10,14 @@ import com.Msg;
 import com.RequestCodes;
 
 import api.ClientAPI;
-import controller.ClientEnviroment;
 import controller.Connection;
 
-public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions, ClientEnviroment {
+public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions {
+
+    enum ConnectionState {
+        IN_SINGLE_CHAT,
+        IN_CHAT,
+    }
 
     // Singleton
     private static ConsoleConnection instance;
@@ -28,11 +33,12 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
     }
     // --------
 
-    public boolean inSingleChat = false;
+    private boolean inSingleChat = false;
     private Connection c = null;
     private String singleId = "0";
     private String singleNick = null;
 
+    // getters
     public Connection getConnection() {
         return c;
     }
@@ -41,15 +47,10 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         return inSingleChat;
     }
 
+    // constructor
     private ConsoleConnection() {
         System.out.println(ACTION_SET_NICK);
         c = new Connection(sc.nextLine());
-    }
-
-    private void clearConsole() {
-        System.out.print(CLEAR_CONSOLE);
-        System.out.print(COLOR_RESET);
-        System.out.flush();
     }
 
     private String getCurrentTime() {
@@ -71,7 +72,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         System.out.println(ACTION_EXIT_SINGLE);
     }
 
-    private void selectMainAction(String op) {
+    private void selectMainAction(String op) throws IOException {
         Msg msgOut = null;
         switch (op) {
             case OP_1:
@@ -97,7 +98,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         c.writeMessage(msgOut);
     }
 
-    private void selectSingleAction(String op) {
+    private void selectSingleAction(String op) throws IOException {
         if (op.equals(".exit")) {
             exitSingle();
             inSingleChat = false;
@@ -110,18 +111,15 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         }
     }
 
-    private void exitSingle() {
+    private void exitSingle() throws IOException {
         c.writeMessage(ClientAPI.newRequest().exitSingle(c.getConId(), singleId));
-    }
-
-    private void sendToSingle(String txt) {
-        c.writeMessage(ClientAPI.newRequest().sendSingleMsg(c.getConId(), singleId, txt));
     }
 
     private String selectSingle() {
         int userID;
         do {
             System.out.println(ACTION_SELECT_USER_BY_ID);
+            c.writeMessage(ClientAPI.newRequest().showAllOnline());
             try {
                 userID = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
@@ -130,9 +128,13 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
             }
             return String.valueOf(userID);
         } while (true);
-
     }
 
+    private void sendToSingle(String txt) throws IOException {
+        c.writeMessage(ClientAPI.newRequest().sendSingleMsg(c.getConId(), singleId, txt));
+    }
+
+    // HADLING SERVER RESPONSE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     private void handleRequest(Msg reqRespond) {
         // System.out.println("\n" + reqRespond.toString());
         switch (reqRespond.getAction()) {
@@ -148,34 +150,38 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 System.out.println(MENU_DENY_SINGLE);
                 break;
             case REQ_WAITING_FOR_PERMISSION:
-                System.out.println(reqRespond.getParameter(0) + " pending to accept");
+                System.out.println(reqRespond.getParameter(0) + _PENDING_TO_ACCEPT);
                 break;
             case REQ_START_SINGLE:
                 inSingleChat = true;
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getReceptor();
-                System.out.println(singleNick + " accepts the invitation");
+                System.out.println(singleNick + _ACCEPTS_THE_INVITATION);
                 break;
             case REQ_EXIT_SINGLE:
                 System.out.println(
-                        singleNick + "[" + singleId + "]" + " has left the chat, press ENTER to back to the MAIN MENU");
+                        singleNick + "[" + singleId + "]" + _LEFT_SINGLE_CHAT);
                 inSingleChat = false;
                 singleNick = null;
                 singleId = null;
+            default:
+                break;
         }
     }
 
     private void handleMessage(Msg responMessage) {
-        System.out.print(COLOR_GREEN);
+        changeConsoleColor(ConsoleColor.GREEN);
         switch (responMessage.getAction()) {
             case MSG_SINGLE_MSG:
-                System.out.println("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
+                System.out.print("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
+                break;
+            default:
                 break;
         }
     }
 
     private void handleError(Msg respondError) {
-        System.out.print(COLOR_RED);
+        changeConsoleColor(ConsoleColor.RED);
         // System.out.println(respondError.toString());
         switch (respondError.getAction()) {
             case ERROR_CLIENT_NOT_FOUND:
@@ -188,8 +194,9 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 break;
         }
     }
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    private void listenServer() {
+    private void listenServer() throws ClassNotFoundException, IOException {
         Msg respond = c.readMessage();
         if (respond != null) {
             switch (respond.PACKAGE_TYPE) {
@@ -204,7 +211,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                     break;
             }
         }
-        System.out.print(COLOR_RESET);
+        changeConsoleColor(ConsoleColor.DEFAULT);
     }
 
     // PUBLIC METHODS
@@ -212,29 +219,29 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         System.out.println(INTRO);
     }
 
-    public void startSesion() {
+    public void startSesion() throws IOException {
         if (inSingleChat) {
             showSingleMenu();
             selectSingleAction(sc.nextLine());
         } else {
-            System.out.println(LISTENNIG + PORT);
             showMainMenu();
             selectMainAction(sc.nextLine());
+            clearConsole();
         }
     }
 
     @Override
     public void run() {
-        while (true) {
-            try {
+        try {
+            while (true) {
                 listenServer();
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("SERVER IS OUT");
-                System.out.println("Disconecting...");
-                System.out.println("Bye!");
-                System.exit(0);
             }
+        } catch (ClassNotFoundException e) {
+            System.out.println("EXCEPTION LISTENING ClassNotFoundException");
+
+        } catch (IOException e) {
+            System.out.println("EXCEPTION LISTENING IOException");
+            c.reConnect();
         }
     }
 
