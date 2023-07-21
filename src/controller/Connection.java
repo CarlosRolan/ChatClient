@@ -1,16 +1,15 @@
 package controller;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ConnectException;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.SocketException;
 
 import com.Msg;
 import com.Msg.MsgType;
 import com.RequestCodes;
-
 
 public class Connection implements ClientEnviroment, RequestCodes {
 
@@ -29,31 +28,32 @@ public class Connection implements ClientEnviroment, RequestCodes {
 	}
 
 	public Connection(String nick) {
+		mNick = nick;
+		try {
+			initConnection();
+		} catch (IOException e) {
+			reconnect();
+		}
 
-		boolean exception = false;
+	}
+
+	private void initConnection() throws IOException {
+		mSocket = new Socket(HOSTNAME, PORT);
+		oos = new ObjectOutputStream(mSocket.getOutputStream());
+		ois = new ObjectInputStream(mSocket.getInputStream());
+		presentation();
+	}
+
+	public void reconnect() {
 		String dots = "";
-
-		do {
-			exception = false;
+		while (true) {
 			try {
-				Thread.sleep(500);
-			} catch (Exception e) {
-
-			}
-			try {
-				mNick = nick;
-				mSocket = new Socket(HOSTNAME, PORT);
-
-				oos = new ObjectOutputStream(mSocket.getOutputStream());
-				ois = new ObjectInputStream(mSocket.getInputStream());
-
-				if (presentToServer()) {
-					System.out.println(INFO_CONECXION_ACCEPTED);
-				} else {
-					System.out.println(INFO_CONECXION_REJECTED);
+				initConnection();
+			} catch (IOException e) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException ignored) {
 				}
-			} catch (ConnectException e) {
-				exception = true;
 				System.out.print("\033[H\033[2J");
 				System.out.println("Unable to coonect to the server. Trying." + dots);
 				dots = dots.concat(".");
@@ -61,28 +61,38 @@ public class Connection implements ClientEnviroment, RequestCodes {
 					dots = "";
 				}
 				System.out.flush();
-			} catch (UnknownHostException e) {
-				exception = true;
-				System.out.println("UnknownHostException");
-			} catch (IOException e) {
-				exception = true;
-				System.out.println("IOException");
-			} catch (NullPointerException e) {
-				exception = true;
-				System.out.println("NullPointerException");
+				continue;
 			}
-		} while (exception);
+			break;
+		}
+		System.out.print("\033[H\033[2J");
+		System.out.println("RECONNECTED");
+	}
 
+	private void presentation() {
+		if (presentToServer()) {
+			System.out.println(INFO_CONECXION_ACCEPTED);
+			System.out.println("Listening on PORT: " + PORT);
+		} else {
+			System.out.println(INFO_CONECXION_REJECTED);
+		}
 	}
 
 	private boolean presentToServer() {
 		Msg presentation = new Msg(MsgType.REQUEST);
 		presentation.setAction(PRESENT);
 		presentation.setEmisor(getNick());
+
 		writeMessage(presentation);
 
-		Msg presentationResponse = readMessage();
-		if (presentationResponse.getAction().equals(INFO_PRESENTATION_SUCCES)) {
+		Msg presentationResponse = null;
+		try {
+			presentationResponse = readMessage();
+		} catch (ClassNotFoundException | IOException e) {
+			System.out.println("COULD NOT RECIEVE CONFIRMATION");
+		}
+
+		if (INFO_PRESENTATION_SUCCES.equals(presentationResponse.getAction())) {
 			mId = Integer.parseInt(presentationResponse.getReceptor());
 			return true;
 		} else {
@@ -92,25 +102,18 @@ public class Connection implements ClientEnviroment, RequestCodes {
 
 	public void writeMessage(Msg msg) {
 		try {
-			if (msg != null) {
-				oos.writeObject(msg);
-				oos.flush();
-			}
+			oos.writeObject(msg);
+			oos.flush();
+		} catch (SocketException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 	}
 
-	public Msg readMessage() {
-		try {
-			return (Msg) ois.readObject();
-		} catch (ClassNotFoundException e) {
-			return null;
-		} catch (IOException e) {
-			return null;
-		} catch (NullPointerException e) {
-			return null;
-		}
+	public Msg readMessage() throws ClassNotFoundException, IOException, EOFException {
+		return (Msg) ois.readObject();
 	}
 
 }

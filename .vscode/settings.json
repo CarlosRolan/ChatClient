@@ -13,5 +13,6 @@
     },
     "java.project.outputPath": "bin",
     "java.format.settings.url": "eclipse-formatter.xml",
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "java.debug.settings.onBuildFailureProceed": true
 }

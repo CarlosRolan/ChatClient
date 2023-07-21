@@ -72,7 +72,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         System.out.println(ACTION_EXIT_SINGLE);
     }
 
-    private void selectMainAction(String op) throws IOException {
+    private void selectMainAction(String op) {
         Msg msgOut = null;
         switch (op) {
             case OP_1:
@@ -95,10 +95,14 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 }
                 break;
         }
-        c.writeMessage(msgOut);
+
+        if (msgOut != null) {
+            c.writeMessage(msgOut);
+        }
+
     }
 
-    private void selectSingleAction(String op) throws IOException {
+    private void selectSingleAction(String op) {
         if (op.equals(".exit")) {
             exitSingle();
             inSingleChat = false;
@@ -111,7 +115,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         }
     }
 
-    private void exitSingle() throws IOException {
+    private void exitSingle() {
         c.writeMessage(ClientAPI.newRequest().exitSingle(c.getConId(), singleId));
     }
 
@@ -130,7 +134,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         } while (true);
     }
 
-    private void sendToSingle(String txt) throws IOException {
+    private void sendToSingle(String txt) {
         c.writeMessage(ClientAPI.newRequest().sendSingleMsg(c.getConId(), singleId, txt));
     }
 
@@ -144,7 +148,6 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
             case REQ_ASKED_FOR_PERMISSION:
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getEmisor();
-                clearConsole();
                 System.out.println("--" + singleNick + " wants to chat with you--");
                 System.out.println(MENU_ALLOW_SINGLE);
                 System.out.println(MENU_DENY_SINGLE);
@@ -198,50 +201,40 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
 
     private void listenServer() throws ClassNotFoundException, IOException {
         Msg respond = c.readMessage();
-        if (respond != null) {
-            switch (respond.PACKAGE_TYPE) {
-                case REQUEST:
-                    handleRequest(respond);
-                    break;
-                case MESSAGE:
-                    handleMessage(respond);
-                    break;
-                case ERROR:
-                    handleError(respond);
-                    break;
-            }
+        switch (respond.PACKAGE_TYPE) {
+            case REQUEST:
+                handleRequest(respond);
+                break;
+            case MESSAGE:
+                handleMessage(respond);
+                break;
+            case ERROR:
+                handleError(respond);
+                break;
         }
         changeConsoleColor(ConsoleColor.DEFAULT);
     }
 
     // PUBLIC METHODS
-    public void printIntro() {
-        System.out.println(INTRO);
-    }
-
-    public void startSesion() throws IOException {
+    public void startSesion() {
         if (inSingleChat) {
             showSingleMenu();
             selectSingleAction(sc.nextLine());
         } else {
             showMainMenu();
             selectMainAction(sc.nextLine());
-            clearConsole();
         }
     }
 
     @Override
     public void run() {
-        try {
-            while (true) {
+        while (true) {
+            try {
                 listenServer();
+            } catch (ClassNotFoundException | IOException e) {
+                System.out.println("YOU ARE OFFLINE");
+                break;
             }
-        } catch (ClassNotFoundException e) {
-            System.out.println("EXCEPTION LISTENING ClassNotFoundException");
-
-        } catch (IOException e) {
-            System.out.println("EXCEPTION LISTENING IOException");
-            c.reConnect();
         }
     }
 
