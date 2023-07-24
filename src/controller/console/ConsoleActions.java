@@ -82,7 +82,7 @@ public interface ConsoleActions {
     final String ACTION_CHAT_SELECT_USER = ">Select an ID of the CHAT you want to chat with";
 
     final String ACTION_SEND_MSG_TO_SINGLE = ">Write a msg to";
-    final String ACTION_EXIT_SINGLE = ">.exit";
+    final String ACTION_EXIT_SINGLE = ".exit";
     final String ACTION_SELECT_SINGLE = ">Please select a number from the list";
 
     // Console OCHAT
@@ -110,4 +110,6 @@ public interface ConsoleActions {
     final String _PENDING_TO_ACCEPT = " pending to accept";
     final String _ACCEPTS_THE_INVITATION = " accepts the invitation";
     final String _LEFT_SINGLE_CHAT = " has left the chat, press ENTER to back to the MAIN MENU";
+
+    final String _EXIT_SINGLE = ">To exit write '" + ACTION_EXIT_SINGLE + "'";
 }

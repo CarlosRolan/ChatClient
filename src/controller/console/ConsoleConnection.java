@@ -6,14 +6,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import com.ApiCodes;
 import com.Connection;
 import com.Msg;
-import com.RequestCodes;
 
 import api.ClientAPI;
 
-
-public class ConsoleConnection extends Thread implements RequestCodes, ConsoleActions {
+public class ConsoleConnection extends Thread implements ApiCodes, ConsoleActions {
 
     enum ConnectionState {
         IN_SINGLE_CHAT,
@@ -70,7 +69,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
 
     private void showSingleMenu() {
         System.out.println(ACTION_SEND_MSG_TO_SINGLE);
-        System.out.println(ACTION_EXIT_SINGLE);
+        System.out.println(_EXIT_SINGLE);
     }
 
     private void selectMainAction(String op) {
@@ -88,7 +87,6 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 System.exit(0);
             default:
                 if (OP_YES.equals(op)) {
-                    System.out.println("~~Chatting with " + singleNick + "~~");
                     msgOut = ClientAPI.newRequest().permissionRespond(true, singleId, c.getConId(), c.getNick());
                 } else if (OP_NO.equals(op)) {
                     inSingleChat = false;
@@ -100,11 +98,10 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
         if (msgOut != null) {
             c.writeMessage(msgOut);
         }
-
     }
 
     private void selectSingleAction(String op) {
-        if (op.equals(".exit")) {
+        if (op.equals(ACTION_EXIT_SINGLE)) {
             exitSingle();
             inSingleChat = false;
             singleId = null;
@@ -143,7 +140,7 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
     private void handleRequest(Msg reqRespond) {
         // System.out.println("\n" + reqRespond.toString());
         switch (reqRespond.getAction()) {
-            case REQ_SHOW_ALL_ONLINE:
+            case REQ_SHOW_ALL:
                 System.out.println(reqRespond.showParameters());
                 break;
             case REQ_ASKED_FOR_PERMISSION:
@@ -161,6 +158,9 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getReceptor();
                 System.out.println(singleNick + _ACCEPTS_THE_INVITATION);
+                System.out.println("Press ENTER to tenter the chat");
+                System.out.println("----Chatting with [" + singleId + "]" + singleNick + "----");
+
                 break;
             case REQ_EXIT_SINGLE:
                 System.out.println(
@@ -171,13 +171,14 @@ public class ConsoleConnection extends Thread implements RequestCodes, ConsoleAc
             default:
                 break;
         }
+
     }
 
     private void handleMessage(Msg responMessage) {
         changeConsoleColor(ConsoleColor.GREEN);
         switch (responMessage.getAction()) {
             case MSG_SINGLE_MSG:
-                System.out.print("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
+                System.out.println("\t\t[" + getCurrentTime() + "]" + singleNick + ": " + responMessage.getBody());
                 break;
             default:
                 break;

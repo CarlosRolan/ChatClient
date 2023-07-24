@@ -1,10 +1,10 @@
 package api;
 
+import com.ApiCodes;
 import com.Msg;
 import com.Msg.MsgType;
-import com.RequestCodes;
 
-public class ClientAPI implements RequestCodes {
+public class ClientAPI implements ApiCodes {
 
     public static ClientAPI newRequest() {
         return new ClientAPI();
@@ -16,7 +16,7 @@ public class ClientAPI implements RequestCodes {
 
     public Msg showAllOnline() {
         Msg msgOut = new Msg(MsgType.REQUEST);
-        msgOut.setAction(REQ_SHOW_ALL_ONLINE);
+        msgOut.setAction(REQ_SHOW_ALL);
 
         if ("".equals(msgOut)) {
             return null;
@@ -28,7 +28,7 @@ public class ClientAPI implements RequestCodes {
     public Msg askForSingle(String requesterId, String candidateId, String requesterNick) {
         Msg msgOut = new Msg(MsgType.REQUEST);
 
-        msgOut.setAction(SINGLE_REQUESTED);
+        msgOut.setAction(REQ_SINGLE);
         msgOut.setEmisor(requesterId);
         msgOut.setReceptor(candidateId);
         msgOut.setBody(requesterNick);
