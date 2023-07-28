@@ -1,22 +1,21 @@
 package controller.console;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
-import com.ApiCodes;
-import com.Connection;
-import com.Msg;
 import com.chat.Chat;
+import com.comunication.ApiCodes;
+import com.comunication.Connection;
+import com.comunication.Msg;
 
 import api.ClientAPI;
 
 public class ConsoleConnection extends Thread implements ApiCodes, ConsoleActions {
 
     enum ConsoleState {
-        IN_SINGLE_CHAT,
+        IN_MAIN_MENU,
+        IN_SINGLE,
         IN_CHAT,
     }
 
@@ -37,7 +36,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
     private final Connection c;
 
     // Console state vars
-    private boolean inSingleChat = false;
+    private boolean inSingle = false;
     private String singleId = "0";
     private String singleNick = null;
 
@@ -49,11 +48,14 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         return c;
     }
 
-    public boolean isInSingleChat() {
-        return inSingleChat;
+    public boolean isInSingle() {
+        return inSingle;
     }
 
     public boolean isInChat() {
+        if (currentChat == null) {
+            return false;
+        }
         return inChat;
     }
 
@@ -67,43 +69,20 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         c = new Connection(sc.nextLine());
     }
 
-    private String getCurrentTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(DATE_FORMAT);
-        LocalDateTime now = LocalDateTime.now();
-        return dtf.format(now);
-    }
-
-    private void showMainMenu() {
-        System.out.println("==========|" + c.getNick() + "|==========");
-        System.out.println(MENU_MAIN_1);
-        System.out.println(MENU_MAIN_2);
-        System.out.println(MENU_MAIN_3);
-        System.out.println(MENU_MAIN_EXIT);
-    }
-
-    private void showSingleMenu() {
-        System.out.println(MENU_SINGLE_SEND_MSG);
-        System.out.println(MENU_SINGLE_EXIT);
-    }
-
-    private void showChatMenu() {
-        System.out.println(MENU_CHAT_1);
-        System.out.println(MENU_CHAT_2);
-        System.out.println(MENU_CHAT_3);
-        System.out.println(MENU_CHAT_EXIT);
-    }
-
-    private void showInChatMenu() {
+    private void inChatMenu() {
         System.out.println(MENU_CHAT_1_1);
         System.out.println(MENU_CHAT_1_2);
         System.out.println(MENU_CHAT_EXIT);
-    }
 
-    private void showSettingsChatMenu() {
-        System.out.println(MENU_CHAT_1_2_1);
-        System.out.println(MENU_CHAT_1_2_2);
-        System.out.println(MENU_CHAT_1_2_3);
-        System.out.println(MENU_CHAT_EXIT);
+        switch (sc.nextLine()) {
+            case OP_1:
+                break;
+            case OP_2:
+                showSettingsChatMenu();
+                break;
+            default:
+                break;
+        }
     }
 
     private void selectMainAction(String op) {
@@ -111,16 +90,15 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         switch (op) {
             // Show all users online
             case OP_1:
-                msgOut = ClientAPI.newRequest().showAllOnline();
+                msgOut = ClientAPI.newRequest().showAllOnline(c.getConId());
                 break;
-            // Start single chat (1v1)
+            // Start Single-Chat (1v1)
             case OP_2:
-                msgOut = ClientAPI.newRequest().askForSingle(c.getConId(), selectSingle(), c.getNick());
+                msgOut = ClientAPI.newRequest().askForSingle(c.getConId(), selectSingleById(), c.getNick());
                 break;
-            // Start Multiple Chat Menu
+            // Start Multiple-Chat Menu
             case OP_3:
-                showChatMenu();
-                selectChatAction(sc.nextLine());
+                inChat = true;
                 break;
             // Exit program
             case OP_EXIT:
@@ -129,7 +107,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 if (OP_ALLOW.equals(op)) {
                     msgOut = ClientAPI.newRequest().permissionRespond(true, singleId, c.getConId(), c.getNick());
                 } else if (OP_DENY.equals(op)) {
-                    inSingleChat = false;
+                    inSingle = false;
                     msgOut = ClientAPI.newRequest().permissionRespond(false, singleId, c.getConId(), c.getNick());
                 } else {
 
@@ -145,11 +123,8 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
     private void selectSingleAction(String op) {
         if (op.equals(MENU_SINGLE_EXIT)) {
             exitSingle();
-            inSingleChat = false;
-            singleId = null;
-            singleNick = null;
         } else {
-            if (inSingleChat || singleId != null || singleNick != null) {
+            if (inSingle || singleId != null || singleNick != null) {
                 sendToSingle(op);
             }
         }
@@ -159,14 +134,27 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         switch (op) {
             // Enter chat
             case OP_1:
-                showInChatMenu();
+                selectChatById();
                 break;
             // Create chat
             case OP_2:
-                showSettingsChatMenu();
+                // TODO create a way to add new members from the creation of the chat
+                System.out.println(IN_SET_CHAT_TITLE);
+                String chatTitle = sc.nextLine();
+                System.out.println(IN_SET_CHAT_DESC);
+                String chatDesc = sc.nextLine();
+                c.writeMessage(ClientAPI.newRequest().requestNewChat(c.getConId(), c.getNick(), chatTitle, chatDesc));
                 break;
             // Delete chat
+            case OP_3:
+                break;
+            // Show all chats u are a member of
+            case OP_4:
+                c.writeMessage(ClientAPI.newRequest().showAllChat(c.getConId()));
+                break;
             case OP_EXIT:
+                inChat = false;
+                currentChat = null;
                 break;
             default:
                 break;
@@ -175,13 +163,16 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
 
     private void exitSingle() {
         c.writeMessage(ClientAPI.newRequest().exitSingle(c.getConId(), singleId));
+        inSingle = false;
+        singleId = null;
+        singleNick = null;
     }
 
-    private String selectSingle() {
+    private String selectSingleById() {
         int userID;
         do {
             System.out.println(IN_SELECT_USER);
-            c.writeMessage(ClientAPI.newRequest().showAllOnline());
+            c.writeMessage(ClientAPI.newRequest().showAllOnline(c.getConId()));
             try {
                 userID = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
@@ -192,12 +183,11 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         } while (true);
     }
 
-    private String selectChat() {
+    private String selectChatById() {
         int chatID;
-
         do {
             System.out.println(IN_SELECT_CHAT);
-            c.writeMessage(ClientAPI.newRequest().showAllOnline());
+            c.writeMessage(ClientAPI.newRequest().showAllChat(c.getConId()));
             try {
                 chatID = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
@@ -214,9 +204,11 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
 
     // HADLING SERVER RESPONSE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     private void handleRequest(Msg reqRespond) {
-        // System.out.println("\n" + reqRespond.toString());
         switch (reqRespond.getAction()) {
-            case REQ_SHOW_ALL:
+            case REQ_SHOW_ALL_CON:
+                System.out.println(reqRespond.showParameters());
+                break;
+            case REQ_SHOW_ALL_CHAT:
                 System.out.println(reqRespond.showParameters());
                 break;
             case REQ_ASKED_FOR_PERMISSION:
@@ -230,20 +222,25 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 System.out.println(reqRespond.getParameter(0) + _PENDING_TO_ACCEPT);
                 break;
             case REQ_START_SINGLE:
-                inSingleChat = true;
+                inSingle = true;
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getReceptor();
                 System.out.println(singleNick + _ACCEPTS_THE_INVITATION);
                 System.out.println("Press ENTER to tenter the chat");
                 System.out.println("----Chatting with [" + singleId + "]" + singleNick + "----");
-
                 break;
             case REQ_EXIT_SINGLE:
                 System.out.println(
                         singleNick + "[" + singleId + "]" + _LEFT_SINGLE_CHAT);
-                inSingleChat = false;
+                inSingle = false;
                 singleNick = null;
                 singleId = null;
+            case REQ_INIT_CHAT:
+                System.out.println(reqRespond.toString());
+                Chat c = Chat.instanceChat(reqRespond);
+                inChat = true;
+                currentChat = c;
+                System.out.println(IN_ENTER_CHAT);
             default:
                 break;
         }
@@ -294,11 +291,20 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
 
     // PUBLIC METHODS
     public void startSesion() {
-        if (inSingleChat) {
+        if (inSingle) {
             showSingleMenu();
             selectSingleAction(sc.nextLine());
+        } else if (inChat) {
+            if (currentChat != null) {
+                inChatMenu();
+
+            } else {
+                showChatMenu();
+                selectChatAction(sc.nextLine());
+            }
+
         } else {
-            showMainMenu();
+            showMainMenu(c.getNick());
             selectMainAction(sc.nextLine());
         }
     }

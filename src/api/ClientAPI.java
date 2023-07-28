@@ -1,8 +1,8 @@
 package api;
 
-import com.ApiCodes;
-import com.Msg;
-import com.Msg.MsgType;
+import com.comunication.ApiCodes;
+import com.comunication.Msg;
+import com.comunication.Msg.MsgType;
 
 public class ClientAPI implements ApiCodes {
 
@@ -14,9 +14,10 @@ public class ClientAPI implements ApiCodes {
 
     }
 
-    public Msg showAllOnline() {
+    public Msg showAllOnline(String emisorId) {
         Msg msgOut = new Msg(MsgType.REQUEST);
-        msgOut.setAction(REQ_SHOW_ALL);
+        msgOut.setAction(REQ_SHOW_ALL_CON);
+        msgOut.setEmisor(emisorId);
 
         if ("".equals(msgOut)) {
             return null;
@@ -69,6 +70,39 @@ public class ClientAPI implements ApiCodes {
         msgOut.setAction(REQ_EXIT_SINGLE);
         msgOut.setEmisor(emisorId);
         msgOut.setReceptor(receptorId);
+
+        return msgOut;
+
+    }
+
+    public Msg showAllChat(String emisorId) {
+        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut.setAction(REQ_SHOW_ALL_CHAT);
+        msgOut.setEmisor(emisorId);
+
+        if ("".equals(msgOut)) {
+            return null;
+        }
+
+        return msgOut;
+    }
+
+    public Msg selectChat(String chatId) {
+        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut.setAction(REQ_CHAT);
+        msgOut.setReceptor(chatId);
+        return msgOut;
+    }
+
+    public Msg requestNewChat(String creatorId, String creatorNick, String chatTitle, String chatDesc) {
+        Msg msgOut = new Msg(MsgType.REQUEST);
+
+        String[] parameters = { chatTitle, chatDesc };
+
+        msgOut.setAction(REQ_CREATE_CHAT);
+        msgOut.setEmisor(creatorId);
+        msgOut.setParameters(parameters);
+        msgOut.setBody(creatorNick);
 
         return msgOut;
 
