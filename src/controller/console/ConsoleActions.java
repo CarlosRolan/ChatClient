@@ -150,12 +150,11 @@ public interface ConsoleActions {
         System.out.println(MENU_SINGLE_EXIT);
     }
 
-    default void showChatMenu() {
+    default void chatsOptions() {
         System.out.println(MENU_CHAT_1);
         System.out.println(MENU_CHAT_2);
         System.out.println(MENU_CHAT_3);
         System.out.println(MENU_CHAT_4);
-        System.out.println(MENU_CHAT_EXIT);
     }
 
     default String getCurrentTime() {

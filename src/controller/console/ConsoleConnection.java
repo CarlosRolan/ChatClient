@@ -69,7 +69,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         c = new Connection(sc.nextLine());
     }
 
-    private void inChatMenu() {
+    private void showInChatMenu() {
         System.out.println(MENU_CHAT_1_1);
         System.out.println(MENU_CHAT_1_2);
         System.out.println(MENU_CHAT_EXIT);
@@ -98,7 +98,8 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 break;
             // Start Multiple-Chat Menu
             case OP_3:
-                inChat = true;
+                chatsOptions();
+                selectChatsOptions(sc.nextLine());
                 break;
             // Exit program
             case OP_EXIT:
@@ -121,7 +122,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
     }
 
     private void selectSingleAction(String op) {
-        if (op.equals(MENU_SINGLE_EXIT)) {
+        if (op.equals(OP_SINGLE_EXIT)) {
             exitSingle();
         } else {
             if (inSingle || singleId != null || singleNick != null) {
@@ -130,11 +131,11 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         }
     }
 
-    private void selectChatAction(String op) {
+    private void selectChatsOptions(String op) {
         switch (op) {
             // Enter chat
             case OP_1:
-                selectChatById();
+                c.writeMessage(ClientAPI.newRequest().selectChat(selectChatById()));
                 break;
             // Create chat
             case OP_2:
@@ -152,11 +153,20 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
             case OP_4:
                 c.writeMessage(ClientAPI.newRequest().showAllChat(c.getConId()));
                 break;
-            case OP_EXIT:
+            default:
                 inChat = false;
                 currentChat = null;
                 break;
-            default:
+        }
+    }
+
+    private void selectInChatAction(String op) {
+        switch (op) {
+            case OP_1:
+                System.out.println("OP_1");
+                break;
+            case OP_2:
+                System.out.println("OP_2");
                 break;
         }
     }
@@ -226,7 +236,6 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 singleNick = reqRespond.getParameter(0);
                 singleId = reqRespond.getReceptor();
                 System.out.println(singleNick + _ACCEPTS_THE_INVITATION);
-                System.out.println("Press ENTER to tenter the chat");
                 System.out.println("----Chatting with [" + singleId + "]" + singleNick + "----");
                 break;
             case REQ_EXIT_SINGLE:
@@ -235,12 +244,13 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 inSingle = false;
                 singleNick = null;
                 singleId = null;
+
+                break;
+
             case REQ_INIT_CHAT:
-                System.out.println(reqRespond.toString());
                 Chat c = Chat.instanceChat(reqRespond);
                 inChat = true;
                 currentChat = c;
-                System.out.println(IN_ENTER_CHAT);
             default:
                 break;
         }
@@ -295,14 +305,8 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
             showSingleMenu();
             selectSingleAction(sc.nextLine());
         } else if (inChat) {
-            if (currentChat != null) {
-                inChatMenu();
-
-            } else {
-                showChatMenu();
-                selectChatAction(sc.nextLine());
-            }
-
+            showInChatMenu();
+            selectInChatAction(MENU_OP_ERROR);
         } else {
             showMainMenu(c.getNick());
             selectMainAction(sc.nextLine());
