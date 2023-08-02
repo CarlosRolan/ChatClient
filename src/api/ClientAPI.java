@@ -1,10 +1,13 @@
 package api;
 
+import com.chat.Chat;
 import com.comunication.ApiCodes;
 import com.comunication.Msg;
 import com.comunication.Msg.MsgType;
 
 public class ClientAPI implements ApiCodes {
+
+    private Msg msgOut = null;
 
     public static ClientAPI newRequest() {
         return new ClientAPI();
@@ -15,7 +18,7 @@ public class ClientAPI implements ApiCodes {
     }
 
     public Msg showAllOnline(String emisorId) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut = new Msg(MsgType.REQUEST);
         msgOut.setAction(REQ_SHOW_ALL_CON);
         msgOut.setEmisor(emisorId);
 
@@ -27,7 +30,7 @@ public class ClientAPI implements ApiCodes {
     }
 
     public Msg askForSingle(String requesterId, String candidateId, String requesterNick) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut = new Msg(MsgType.REQUEST);
 
         msgOut.setAction(REQ_SINGLE);
         msgOut.setEmisor(requesterId);
@@ -39,7 +42,7 @@ public class ClientAPI implements ApiCodes {
 
     public Msg permissionRespond(boolean candidateRespond, String requesterId, String candidateId,
             String candidateNick) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut = new Msg(MsgType.REQUEST);
 
         if (candidateRespond) {
             msgOut.setAction(REQ_ALLOW);
@@ -54,9 +57,9 @@ public class ClientAPI implements ApiCodes {
     }
 
     public Msg sendSingleMsg(String emisorId, String receptorId, String msgTxt) {
-        Msg msgOut = new Msg(MsgType.MESSAGE);
+        msgOut = new Msg(MsgType.MESSAGE);
 
-        msgOut.setAction(MSG_SINGLE_MSG);
+        msgOut.setAction(MSG_TO_SINGLE);
         msgOut.setEmisor(emisorId);
         msgOut.setReceptor(receptorId);
         msgOut.setBody(msgTxt);
@@ -65,7 +68,7 @@ public class ClientAPI implements ApiCodes {
     }
 
     public Msg exitSingle(String emisorId, String receptorId) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+        msgOut = new Msg(MsgType.REQUEST);
 
         msgOut.setAction(REQ_EXIT_SINGLE);
         msgOut.setEmisor(emisorId);
@@ -75,8 +78,8 @@ public class ClientAPI implements ApiCodes {
 
     }
 
-    public Msg showAllChat(String emisorId) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+    public Msg showAllYourChats(String emisorId) {
+        msgOut = new Msg(MsgType.REQUEST);
         msgOut.setAction(REQ_SHOW_ALL_CHAT);
         msgOut.setEmisor(emisorId);
 
@@ -87,17 +90,18 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public Msg selectChat(String chatId) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+    public Msg selectChat(String ChatId, String emisorId) {
+        msgOut = new Msg(MsgType.REQUEST);
         msgOut.setAction(REQ_CHAT);
-        msgOut.setReceptor(chatId);
+        msgOut.setEmisor(emisorId);
+        msgOut.setReceptor(ChatId);
         return msgOut;
     }
 
-    public Msg requestNewChat(String creatorId, String creatorNick, String chatTitle, String chatDesc) {
-        Msg msgOut = new Msg(MsgType.REQUEST);
+    public Msg requestNewChat(String creatorId, String creatorNick, String ChatTitle, String ChatDesc) {
+        msgOut = new Msg(MsgType.REQUEST);
 
-        String[] parameters = { chatTitle, chatDesc };
+        String[] parameters = { ChatTitle, ChatDesc };
 
         msgOut.setAction(REQ_CREATE_CHAT);
         msgOut.setEmisor(creatorId);
@@ -106,6 +110,59 @@ public class ClientAPI implements ApiCodes {
 
         return msgOut;
 
+    }
+
+    public Msg sendMsgToChat(Chat currentChat, String emisorId, String emisorNick, String text) {
+
+        msgOut = new Msg(MsgType.MESSAGE);
+
+        msgOut.setAction(MSG_TO_CHAT);
+        msgOut.setEmisor(emisorId);
+        msgOut.setReceptor(currentChat.getChatId());
+        msgOut.setParameter(0, emisorNick);
+        msgOut.setBody(text);
+
+        return msgOut;
+    }
+
+    public Msg requestUserInfo(String emisorId) {
+        msgOut = new Msg(MsgType.REQUEST);
+
+        msgOut.setAction(REQ_SELECT_USER);
+        msgOut.setEmisor(emisorId);
+
+        return msgOut;
+    }
+
+    public Msg addMemberToChat(String ChatId, String memberId) {
+        msgOut = new Msg(MsgType.REQUEST);
+
+        msgOut.setAction(REQ_ADD_MEMBER);
+        msgOut.setEmisor(ChatId);
+        msgOut.setReceptor(memberId);
+        msgOut.setParameter(0, "REG");
+
+        return msgOut;
+    }
+
+    public Msg deleteMemberinChat(String ChatId, String memberId) {
+        msgOut = new Msg(MsgType.REQUEST);
+
+        msgOut.setAction(REQ_DELETE_MEMBER);
+        msgOut.setEmisor(ChatId);
+        msgOut.setReceptor(memberId);
+        msgOut.setParameter(0, "REG");
+
+        return msgOut;
+    }
+
+    public Msg showAllMembers(String ChatId) {
+        msgOut = new Msg(MsgType.REQUEST);
+
+        msgOut.setAction(REQ_SHOW_ALL_MEMBERS_OF_CHAT);
+        msgOut.setEmisor(ChatId);
+
+        return msgOut;
     }
 
 }

@@ -51,9 +51,9 @@ public class MainView extends JFrame {
 		Panel panel_north = new Panel();
 		contentPane.add(panel_north, BorderLayout.NORTH);
 		
-		JLabel lb_chat_name = new JLabel("Chat_Name");
-		lb_chat_name.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		panel_north.add(lb_chat_name);
+		JLabel lb_ChatGroup_name = new JLabel("ChatGroup_Name");
+		lb_ChatGroup_name.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		panel_north.add(lb_ChatGroup_name);
 		
 		Panel panel_east = new Panel();
 		contentPane.add(panel_east, BorderLayout.EAST);

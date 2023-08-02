@@ -1,4 +1,4 @@
-import controller.console.ConsoleConnection;
+import CLI.ConsoleConnection;
 
 public class Main {
 
@@ -12,10 +12,9 @@ public class Main {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      cc.startSesion();
+      cc.startConsoleSesion();
     }
 
   }
