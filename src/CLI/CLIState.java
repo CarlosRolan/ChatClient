@@ -1,6 +1,6 @@
 package CLI;
 
-public enum ConsoleState {
+public enum CLIState implements CLIActions {
 
     MAIN,
     SINGLE,
@@ -8,13 +8,14 @@ public enum ConsoleState {
     CHAT,
     CHAT_SETTINGS;
 
-    private static ConsoleState instance = MAIN;
+    private static CLIState instance = MAIN;
 
-    public static ConsoleState getState() {
+    public static CLIState get() {
         return instance;
     }
 
-    public static void changeState(final ConsoleState newState) {
+    public void change(final CLIState newState) {
+        System.out.println(CLI_CLEAR_CONSOLE);
         switch (newState) {
             case MAIN:
                 instance = MAIN;
@@ -28,13 +29,9 @@ public enum ConsoleState {
             case CHAT:
                 instance = CHAT;
                 break;
-            case CHAT_SETTINGS:
-                instance = CHAT_SETTINGS;
-                break;
             default:
                 instance = MAIN;
                 break;
         }
     }
-
 }

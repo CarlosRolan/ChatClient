@@ -1,29 +1,34 @@
 package CLI;
 
-import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import com.chat.Chat;
 import com.comunication.ApiCodes;
 import com.comunication.Connection;
-import com.comunication.Msg;
+import com.comunication.MSG;
+import com.comunication.PKG;
+import com.comunication.handlers.IMSGHandler;
+import com.comunication.handlers.IPKGHandler;
 
 import api.ClientAPI;
 import controller.ClientConnection;
-import controller.ClientConnection.Handler;
 
-public class ConsoleConnection extends Thread implements ApiCodes, ConsoleActions {
+public class CLIConnection extends Thread implements ApiCodes, CLIActions {
+
+    // TODO MANAGE CHAT PERMISSION
+    // TODO DELETE MEMBER
+    // TODO DELETE CHAT
 
     // Singleton
-    private static ConsoleConnection instance;
+    private static CLIConnection instance;
 
-    private static Scanner sc = new Scanner(System.in);
+    private Scanner sc = new Scanner(System.in);
 
-    public static ConsoleConnection getInstance() {
+    public static CLIConnection getInstance() {
         System.out.println(INTRO);
         if (instance == null) {
-            instance = new ConsoleConnection();
+            instance = new CLIConnection();
         }
         return instance;
     }
@@ -31,12 +36,12 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
 
     private final ClientConnection pClientCon;
 
-    // Console state vars
+    /* STATE VARS */
     private String pSingleID = "0";
     private String pSincleNick = null;
     private Chat pCurrentChat = null;
 
-    // getters
+    /* GETTERS */
     public Connection getConnection() {
         return pClientCon;
     }
@@ -45,15 +50,18 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         return pCurrentChat;
     }
 
-    // constructor
-    private ConsoleConnection() {
+    /* CONSTRUCTOR */
+    private CLIConnection() {
         System.out.println(IN_SET_NICK);
-        pClientCon = new ClientConnection(sc.nextLine(), handler);
+        pClientCon = new ClientConnection(sc.nextLine(), IMSGHandler, IPKGhandler);
     }
 
     public void startConsoleSesion() {
-        switch (ConsoleState.getState()) {
+        switch (CLIState.get()) {
             case MAIN:
+                pCurrentChat = null;
+                pSincleNick = null;
+                pSingleID = "0";
                 showMainMenu(pClientCon.getNick());
                 selectMainAction();
                 break;
@@ -69,13 +77,8 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 break;
 
             case CHAT:
-                showInChatMenu();
+                showInChatMenu(pCurrentChat.getTitle());
                 selectInChatAction();
-                break;
-
-            case CHAT_SETTINGS:
-                showChatMenuSettings();
-                selectChatSettingsAction();
                 break;
 
             default:
@@ -83,9 +86,10 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         }
     }
 
-    private void selectMainAction() {
-        Msg msgOut = null;
-        switch (sc.nextLine()) {
+    public void selectMainAction() {
+        MSG msgOut = null;
+        String op = sc.nextLine();
+        switch (op) {
             // Show all users online
             case OP_1:
                 msgOut = ClientAPI.newRequest().showAllOnline(pClientCon.getConId());
@@ -96,16 +100,16 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 break;
             // Start Chats Menu
             case OP_3:
-                ConsoleState.changeState(ConsoleState.CHAT_MENU);
+                CLIState.get().change(CLIState.CHAT_MENU);
                 break;
             // Exit program
             case OP_EXIT:
                 System.exit(0);
             default:
-                selectAllowOrDeny();
+                selectAllowOrDeny(op);
                 break;
         }
-        pClientCon.writeMessage(msgOut);
+        pClientCon.write(msgOut);
     }
 
     private void selectSingleAction() {
@@ -113,20 +117,20 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         if (op.equals(OP_SINGLE_EXIT)) {
             exitSingle();
         } else {
-            if (ConsoleState.getState() == ConsoleState.SINGLE || pSingleID != null || pSincleNick != null) {
-                pClientCon.sendToSingle(pSingleID, op);
+            if (CLIState.get() == CLIState.SINGLE || pSingleID != null || pSincleNick != null) {
+                pClientCon.sendToSingleReq(pSingleID, op);
             }
         }
     }
 
-    private void selectAllowOrDeny() {
-        Msg msgOut = null;
-        String op = sc.nextLine();
+    private void selectAllowOrDeny(String op) {
+        MSG msgOut = null;
         if (OP_ALLOW.equals(op)) {
             msgOut = ClientAPI.newRequest().permissionRespond(true, pSingleID, pClientCon.getConId(),
                     pClientCon.getNick());
+            CLIState.get().change(CLIState.SINGLE);
         } else if (OP_DENY.equals(op)) {
-            ConsoleState.changeState(ConsoleState.MAIN);
+            CLIState.get().change(CLIState.MAIN);
             msgOut = ClientAPI.newRequest().permissionRespond(false, pSingleID, pClientCon.getConId(),
                     pClientCon.getNick());
         } else {
@@ -135,7 +139,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         }
 
         if (msgOut != null) {
-            pClientCon.writeMessage(msgOut);
+            pClientCon.write(msgOut);
         }
     }
 
@@ -143,7 +147,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         switch (sc.nextLine()) {
             // Enter Chat
             case OP_1:
-                pClientCon.writeMessage(
+                pClientCon.write(
                         ClientAPI.newRequest().selectChat(selectChatById(), pClientCon.getConId()));
                 break;
             // Create Chat
@@ -153,69 +157,63 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 String chatTitle = sc.nextLine();
                 System.out.println(IN_SET_CHAT_DESC);
                 String chatDesc = sc.nextLine();
-                pClientCon.writeMessage(ClientAPI.newRequest().requestNewChat(pClientCon.getConId(),
-                        pClientCon.getNick(), chatTitle,
-                        chatDesc));
+                pClientCon.createChatReq(chatTitle, chatDesc);
                 break;
             // Delete Chat
             case OP_3:
                 break;
             // Show all Chats u are a member of
             case OP_4:
-                pClientCon.writeMessage(ClientAPI.newRequest().showAllYourChats(pClientCon.getConId()));
+                pClientCon.showAllChatsReq();
                 break;
             // Exit Chats Menu - Back to Main
             case OP_EXIT:
-                ConsoleState.changeState(ConsoleState.MAIN);
+                CLIState.get().change(CLIState.MAIN);
                 pCurrentChat = null;
                 break;
             default:
-                ConsoleState.changeState(ConsoleState.CHAT);
+                CLIState.get().change(CLIState.CHAT);
+                pCurrentChat = null;
                 break;
         }
     }
 
     private void selectInChatAction() {
+
         switch (sc.nextLine()) {
             // Send MSG to Chat
             case OP_1:
-                pClientCon.sendToChat(pCurrentChat, sc.nextLine());
+                pClientCon.sendToChatReq(pCurrentChat, sc.nextLine());
                 break;
             // Manage Chat
             case OP_2:
-                ConsoleState.changeState(ConsoleState.CHAT_SETTINGS);
+                CLIState.get().change(CLIState.CHAT_SETTINGS);
                 break;
             // Show all member
             case OP_3:
-                pClientCon.writeMessage(ClientAPI.newRequest().showAllMembers(pCurrentChat.getChatId()));
+                pClientCon.showAllMemberforChatReq(pCurrentChat.getChatId());
+                break;
+            // Add Member
+            case OP_4:
+                pClientCon.addMemberToChatReq(pCurrentChat, selectUser());
+                break;
+            // Delete Members
+            case OP_5:
+                // deletemember(selectUser());
+                break;
+            // Manage Permissions
+            case OP_6:
                 break;
             // Exit Chat - Back to Main
             case OP_EXIT:
-                ConsoleState.changeState(ConsoleState.MAIN);
-                break;
-        }
-    }
-
-    private void selectChatSettingsAction() {
-        switch (sc.nextLine()) {
-            // Add Member
-            case OP_1:
-                pClientCon.addMember(pCurrentChat, selectUser());
-                break;
-            // Delete Members
-            case OP_2:
-                // deletemember(selectUser());
-                break;
-            // Exit Chat Settings - Back to Chat
-            case OP_EXIT:
-                ConsoleState.changeState(ConsoleState.CHAT_MENU);
+                CLIState.get().change(CLIState.MAIN);
                 break;
         }
     }
 
     private void exitSingle() {
-        pClientCon.writeMessage(ClientAPI.newRequest().exitSingle(pClientCon.getConId(), pSingleID));
-        ConsoleState.changeState(ConsoleState.MAIN);
+        pClientCon.exitSingleReq(pSingleID);
+        CLIState.get().change(CLIState.MAIN);
         pSingleID = null;
         pSincleNick = null;
     }
@@ -224,7 +222,7 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         int userID;
         do {
             System.out.println(IN_SELECT_USER);
-            pClientCon.writeMessage(ClientAPI.newRequest().showAllOnline(pClientCon.getConId()));
+            pClientCon.write(ClientAPI.newRequest().showAllOnline(pClientCon.getConId()));
             try {
                 userID = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
@@ -236,25 +234,27 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
     }
 
     private String selectChatById() {
-        int ChatID;
+        int chatId;
         do {
             System.out.println(IN_SELECT_CHAT);
-            pClientCon.writeMessage(ClientAPI.newRequest().showAllYourChats(pClientCon.getConId()));
+            pClientCon.write(ClientAPI.newRequest().showAllYourChats(pClientCon.getConId()));
             try {
-                ChatID = Integer.parseInt(sc.nextLine());
+                chatId = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
                 System.out.println(IN_SELECT_SINGLE);
                 continue;
             }
-            return String.valueOf(ChatID);
+            return String.valueOf(chatId);
         } while (true);
     }
 
-    /* Handler implementation of the requests respond from the server */
-    private final ClientConnection.Handler handler = new Handler() {
+    /* ON DIFERENT THREAAAD */
+    /* IMPLEMENTATIONS */
+    // MSG
+    private final IMSGHandler IMSGHandler = new IMSGHandler() {
 
         @Override
-        public void handleRequest(Msg respondReq) {
+        public void handleRequest(MSG respondReq) {
             changeConsoleColor(ConsoleColor.BLUE);
             switch (respondReq.getAction()) {
 
@@ -280,11 +280,11 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
 
                 case REQ_WAITING_FOR_PERMISSION:
                     System.out.println(respondReq.getParameter(0) + _PENDING_TO_ACCEPT);
-                    ConsoleState.changeState(ConsoleState.SINGLE);
                     break;
 
                 case REQ_START_SINGLE:
-                    ConsoleState.changeState(ConsoleState.SINGLE);
+                    // TODO diferienciate between the requester and the allower
+                    CLIState.get().change(CLIState.SINGLE);
                     pSincleNick = respondReq.getParameter(0);
                     pSingleID = respondReq.getReceptor();
                     System.out.println(pSincleNick + _ACCEPTS_THE_INVITATION);
@@ -294,17 +294,17 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
                 case REQ_EXIT_SINGLE:
                     System.out.println(
                             pSincleNick + "[" + pSingleID + "]" + _LEFT_SINGLE_CHAT);
-                    ConsoleState.changeState(ConsoleState.MAIN);
+                    CLIState.get().change(CLIState.MAIN);
                     pSincleNick = null;
                     pSingleID = null;
                     break;
 
                 case REQ_INIT_CHAT:
-                    Chat c = Chat.instanceChat(respondReq);
-                    pCurrentChat = c;
-                    ConsoleState.changeState(ConsoleState.CHAT);
-                    if (c == null)
-                        ConsoleState.changeState(ConsoleState.MAIN);
+                    pCurrentChat = Chat.instanceChat(respondReq);
+                    CLIState.get().change(CLIState.CHAT);
+                    if (pCurrentChat == null)
+                        CLIState.get().change(CLIState.MAIN);
+                    break;
 
                 default:
                     break;
@@ -313,40 +313,40 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         }
 
         @Override
-        public void handleMessage(Msg respondMsg) {
+        public void handleMessage(MSG respondMSG) {
             changeConsoleColor(ConsoleColor.GREEN);
-            switch (respondMsg.getAction()) {
+            switch (respondMSG.getAction()) {
                 case MSG_TO_SINGLE:
-                    System.out.println("\t\t[" + getCurrentTime() + "]" + pSincleNick + ": " + respondMsg.getBody());
+                    System.out.println("\t\t[" + getCurrentTime() + "]" + pSincleNick + ": " + respondMSG.getBody());
                     break;
                 case MSG_TO_CHAT:
-                    if (ConsoleState.getState() == ConsoleState.CHAT) {
-                        System.out.println("---Chat:" + pCurrentChat.getTitle() + "----");
-                        System.out.println("\t\t[" + getCurrentTime() + "]" + respondMsg.getParameter(0) + ": "
-                                + respondMsg.getBody());
+                    if (CLIState.get() == CLIState.CHAT) {
+                        System.out.println("********[" + getCurrentTime() + "]" + respondMSG.getParameter(0) + ": "
+                                + respondMSG.getBody());
                     }
                     break;
                 default:
+                    System.out.println();
                     break;
             }
             changeConsoleColor(ConsoleColor.DEFAULT);
         }
 
         @Override
-        public void handleError(Msg respondError) {
+        public void handleError(MSG respondError) {
             changeConsoleColor(ConsoleColor.RED);
             switch (respondError.getAction()) {
 
                 case ERROR_CLIENT_NOT_FOUND:
-                    System.out.println("There is no CLIENT with that ID");
+                    System.out.println(FEED_CLIENT_NOT_FOUND);
                     break;
 
                 case ERROR_CHAT_NOT_FOUND:
-                    System.out.println("There is no Chat with that ID");
+                    System.out.println(FEED_CHAT_NOT_FOUND);
                     break;
 
                 case ERROR_SELF_REFERENCE:
-                    System.out.println("You cannot talk with your self");
+                    System.out.println(FEED_SELF_REFERENCE);
                     break;
 
                 default:
@@ -356,15 +356,27 @@ public class ConsoleConnection extends Thread implements ApiCodes, ConsoleAction
         }
     };
 
+    // PKG
+    private final IPKGHandler IPKGhandler = new IPKGHandler() {
+
+        @Override
+        public void handleMixed(PKG mixed) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'handleMixed'");
+        }
+
+        @Override
+        public void handleCollection(PKG collection) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'handleCollection'");
+        }
+
+    };
+
     @Override
     public void run() {
         while (true) {
-            try {
-                pClientCon.listenServer();
-            } catch (ClassNotFoundException | IOException e) {
-                System.out.println("YOU ARE OFFLINE");
-                break;
-            }
+            pClientCon.listen();
         }
     }
 }
