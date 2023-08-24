@@ -1,4 +1,4 @@
-package client;
+package controller;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,29 +24,19 @@ public class SaveData {
         return instance;
     }
 
-    private final static String FILE_DIR = "../../store/";
-    private final static String FILE_NAME = "ClientData.txt";
+    private final String DATA_DIR = "./data";
+    private final String CHATS_DIR = DATA_DIR + "/chats/";
+    private final String USER_DIR = DATA_DIR + "/user";
+    private final String USER_CONFIG = USER_DIR+ "/config.txt";
+    private final String TXT_EXT = ".txt";
 
     private XmlReader xmlReader;
-    private File file;
-
-    private SaveData() {
-        file = new File(FILE_DIR + FILE_NAME);
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-    }
 
     public String loadChatsRaw() {
         String rawData = "";
         Scanner myReader = null;
         try {
-            myReader = new Scanner(file);
+            myReader = new Scanner(new File(""));
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -62,10 +52,12 @@ public class SaveData {
         return rawData;
     }
 
-    public void saveChatXML(Chat chat) {
+    public void saveChatRaw(Chat chat) {
+        File chatInfo = initChatDir(chat.getTitle());
         PrintWriter writer = null;
         try {
-            writer = new PrintWriter("the-file-name.txt", "UTF-8");
+            writer = new PrintWriter(chatInfo,
+                    "UTF-8");
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -75,4 +67,23 @@ public class SaveData {
         writer.close();
 
     }
+
+    private File initChatDir(String chatTitle) {
+
+        File chatDir = new File(CHATS_DIR + chatTitle);
+
+        chatDir.mkdirs();
+
+        File chatInfo = new File(chatDir.getAbsolutePath() + "/info_" + chatTitle + TXT_EXT);
+
+        try {
+            chatInfo.createNewFile();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return chatInfo;
+    }
+
 }

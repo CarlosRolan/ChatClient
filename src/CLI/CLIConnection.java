@@ -1,5 +1,7 @@
 package CLI;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -12,7 +14,8 @@ import com.comunication.handlers.IMSGHandler;
 import com.comunication.handlers.IPKGHandler;
 
 import api.ClientAPI;
-import controller.ClientConnection;
+import controller.SaveData;
+import controller.connection.ClientConnection;
 
 public class CLIConnection extends Thread implements ApiCodes, CLIActions {
 
@@ -56,7 +59,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         pClientCon = new ClientConnection(sc.nextLine(), IMSGHandler, IPKGhandler);
     }
 
-    public void startConsoleSesion() {
+    public void startConsoleSesion() throws SocketException, IOException {
         switch (CLIState.get()) {
             case MAIN:
                 pCurrentChat = null;
@@ -86,7 +89,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         }
     }
 
-    public void selectMainAction() {
+    public void selectMainAction() throws SocketException, IOException {
         MSG msgOut = null;
         String op = sc.nextLine();
         switch (op) {
@@ -112,7 +115,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         pClientCon.write(msgOut);
     }
 
-    private void selectSingleAction() {
+    private void selectSingleAction() throws SocketException, IOException {
         String op = sc.nextLine();
         if (op.equals(OP_SINGLE_EXIT)) {
             exitSingle();
@@ -123,7 +126,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         }
     }
 
-    private void selectAllowOrDeny(String op) {
+    private void selectAllowOrDeny(String op) throws SocketException, IOException {
         MSG msgOut = null;
         if (OP_ALLOW.equals(op)) {
             msgOut = ClientAPI.newRequest().permissionRespond(true, pSingleID, pClientCon.getConId(),
@@ -143,7 +146,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         }
     }
 
-    private void selectChatsAction() {
+    private void selectChatsAction() throws SocketException, IOException {
         switch (sc.nextLine()) {
             // Enter Chat
             case OP_1:
@@ -178,7 +181,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         }
     }
 
-    private void selectInChatAction() {
+    private void selectInChatAction() throws SocketException, IOException {
 
         switch (sc.nextLine()) {
             // Send MSG to Chat
@@ -211,14 +214,14 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         }
     }
 
-    private void exitSingle() {
+    private void exitSingle() throws SocketException, IOException {
         pClientCon.exitSingleReq(pSingleID);
         CLIState.get().change(CLIState.MAIN);
         pSingleID = null;
         pSincleNick = null;
     }
 
-    private String selectUser() {
+    private String selectUser() throws SocketException, IOException {
         int userID;
         do {
             System.out.println(IN_SELECT_USER);
@@ -233,7 +236,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         } while (true);
     }
 
-    private String selectChatById() {
+    private String selectChatById() throws SocketException, IOException {
         int chatId;
         do {
             System.out.println(IN_SELECT_CHAT);
@@ -292,21 +295,23 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                     break;
 
                 case REQ_EXIT_SINGLE:
-                    System.out.println(
-                            pSincleNick + "[" + pSingleID + "]" + _LEFT_SINGLE_CHAT);
+                    System.out.println(pSincleNick + "[" + pSingleID + "]" + _LEFT_SINGLE_CHAT);
                     CLIState.get().change(CLIState.MAIN);
                     pSincleNick = null;
                     pSingleID = null;
                     break;
 
+                    //TODO make difeerent when created new chat and wehn added
                 case REQ_INIT_CHAT:
                     pCurrentChat = Chat.instanceChat(respondReq);
                     CLIState.get().change(CLIState.CHAT);
+                    new SaveData().saveChatRaw(pCurrentChat);
                     if (pCurrentChat == null)
                         CLIState.get().change(CLIState.MAIN);
                     break;
-
+                    
                 default:
+                    System.out.println(WARN_UNHANDLED_MSG_REQUEST);
                     break;
             }
             changeConsoleColor(ConsoleColor.DEFAULT);
@@ -316,17 +321,20 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
         public void handleMessage(MSG respondMSG) {
             changeConsoleColor(ConsoleColor.GREEN);
             switch (respondMSG.getAction()) {
+
                 case MSG_TO_SINGLE:
                     System.out.println("\t\t[" + getCurrentTime() + "]" + pSincleNick + ": " + respondMSG.getBody());
                     break;
+
                 case MSG_TO_CHAT:
                     if (CLIState.get() == CLIState.CHAT) {
                         System.out.println("********[" + getCurrentTime() + "]" + respondMSG.getParameter(0) + ": "
                                 + respondMSG.getBody());
                     }
                     break;
+
                 default:
-                    System.out.println();
+                    System.out.println(WARN_UNHANDLED_MSG_MESSAGE);
                     break;
             }
             changeConsoleColor(ConsoleColor.DEFAULT);
@@ -350,6 +358,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                     break;
 
                 default:
+                    System.out.println(WARN_UNHANDLED_MSG_ERROR);
                     break;
             }
             changeConsoleColor(ConsoleColor.DEFAULT);
@@ -361,14 +370,21 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
 
         @Override
         public void handleMixed(PKG mixed) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'handleMixed'");
+            switch (mixed.getPKGName()) {
+                default:
+                    System.out.println(WARN_UNHANDLED_PKG_MIXED);
+                    break;
+            }
         }
 
         @Override
         public void handleCollection(PKG collection) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'handleCollection'");
+            switch (collection.getPKGName()) {
+                default:
+                    System.out.println(WARN_UNHANDLED_PKG_COLLECTION);
+                    break;
+
+            }
         }
 
     };
@@ -376,7 +392,12 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
     @Override
     public void run() {
         while (true) {
-            pClientCon.listen();
+            try {
+                pClientCon.listen();
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+                break;
+            }
         }
     }
 }

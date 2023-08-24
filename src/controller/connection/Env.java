@@ -1,4 +1,4 @@
-package controller;
+package controller.connection;
 
 public interface Env {
 	public final String HOSTNAME = "localhost";

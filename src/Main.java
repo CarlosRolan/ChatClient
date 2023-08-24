@@ -1,3 +1,6 @@
+import java.awt.EventQueue;
+import java.io.IOException;
+
 import javax.swing.JOptionPane;
 
 import CLI.CLIConnection;
@@ -33,16 +36,29 @@ public class Main {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        cc.startConsoleSesion();
+        try {
+          cc.startConsoleSesion();
+        } catch (IOException e) {
+          e.printStackTrace();
+          break;
+        }
       }
 
     } else {
       AppState appGUI = AppState.getInstance();
       appGUI.start();
-      MainMenu mm = new MainMenu();
-      mm.setVisible(true);
-      while (true) {
-        appGUI.pClientCon.listen();
+      EventQueue.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          new MainMenu().setVisible(true);
+        }
+      });
+
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
 
     }

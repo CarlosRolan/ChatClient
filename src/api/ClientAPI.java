@@ -134,11 +134,11 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG addMemberToChat(String ChatId, String memberId) {
+    public MSG addMemberToChat(String chatId, String memberId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_ADD_MEMBER);
-        msgOut.setEmisor(ChatId);
+        msgOut.setEmisor(chatId);
         msgOut.setReceptor(memberId);
         msgOut.setParameter(0, "REG");
 
