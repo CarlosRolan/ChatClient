@@ -122,14 +122,15 @@ public interface CLIActions {
         System.out.println(MENU_CHATS_EXIT);
     }
 
-    default void showInChatMenu(String chatTitle) {
+    default void showInChatMenu(String chatTitle, boolean isAdmin) {
         System.out.println("--------" + chatTitle + "--------");
         System.out.println(MENU_CHAT_1);
-        System.out.println(MENU_CHAT_2);
         System.out.println(MENU_CHAT_3);
-        System.out.println(MENU_CHAT_4);
-        System.out.println(MENU_CHAT_5);
-        System.out.println(MENU_CHAT_6);
+        if (isAdmin) {
+            System.out.println(MENU_CHAT_4);
+            System.out.println(MENU_CHAT_5);
+            System.out.println(MENU_CHAT_6);
+        }
         System.out.println(MENU_CHAT_EXIT);
     }
 

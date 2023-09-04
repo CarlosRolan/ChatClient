@@ -19,7 +19,8 @@ public class TreeViewUsers extends JTree {
     private DefaultMutableTreeNode chatsNode = new DefaultMutableTreeNode("Chats");
     private DefaultMutableTreeNode usersNode = new DefaultMutableTreeNode("Users");
 
-    private List<String> list;
+    private List<String> clientsList;
+    private List<String> chatsList;
 
     private final Events eListener;
 
@@ -30,8 +31,9 @@ public class TreeViewUsers extends JTree {
     }
 
     public void init() {
-        list = new ArrayList<>();
-        
+        clientsList = new ArrayList<>();
+        chatsList = new ArrayList<>();
+
         root.add(chatsNode);
         root.add(usersNode);
 
@@ -54,13 +56,14 @@ public class TreeViewUsers extends JTree {
     /**
      * 
      */
-    public void updateClients() {
+    public void update() {
 
         usersNode.removeAllChildren();
+        chatsNode.removeAllChildren();
         // Por lo que te dijo Mario
-        list = AppState.getInstance().getOnlineUsersList();
+        clientsList = AppState.getInstance().getOnlineUsersList();
 
-        for (String con : list) {
+        for (String con : clientsList) {
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(con, editable);
             usersNode.add(node);
         }
@@ -72,6 +75,20 @@ public class TreeViewUsers extends JTree {
 
         expandRow(1);
 
+    }
+
+    public void newMessageTag(String emisorId) {
+        String conId;
+        for (String con : clientsList) {
+            conId = con.split("-")[0];
+
+            if (conId.equals(emisorId)) {
+                DefaultMutableTreeNode node = new DefaultMutableTreeNode(con + "(*)", editable);
+                usersNode.add(node);
+            }
+
+            
+        }
     }
 
     public interface Events {

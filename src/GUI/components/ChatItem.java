@@ -45,7 +45,8 @@ public class ChatItem extends javax.swing.JPanel {
         canvas1.setPreferredSize(new java.awt.Dimension(64, 64));
 
         jLabel1.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
-        jLabel1.setText(chat.getChatId());
+
+        jLabel1.setText(chat.getTitle());
 
         jLabel2.setText(chat.getDescription());
 
@@ -75,6 +76,7 @@ public class ChatItem extends javax.swing.JPanel {
                                                 .addGap(0, 0, 0)
                                                 .addComponent(jLabel2)))
                                 .addContainerGap()));
+
     }// </editor-fold>
 
     // Variables declaration - do not modify

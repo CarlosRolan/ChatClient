@@ -94,7 +94,7 @@ public class ClientConnection extends Connection implements Env {
         write(ClientAPI.newRequest().addMemberToChat(currentChat.getChatId(), memberId));
     }
 
-    public void deletememberReq(Chat currentChat, String memberId) throws SocketException, IOException {
+    public void deleteMemberReq(Chat currentChat, String memberId) throws SocketException, IOException {
         write(ClientAPI.newRequest().deleteMemberinChat(currentChat.getChatId(), memberId));
     }
 

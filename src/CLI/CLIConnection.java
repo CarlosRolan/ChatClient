@@ -80,7 +80,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                 break;
 
             case CHAT:
-                showInChatMenu(pCurrentChat.getTitle());
+                showInChatMenu(pCurrentChat.getTitle(), pCurrentChat.getMember(pClientCon.getConId()).isAdmin());
                 selectInChatAction();
                 break;
 
@@ -202,7 +202,9 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                 break;
             // Delete Members
             case OP_5:
-                // deletemember(selectUser());
+                if (pCurrentChat.getMember(pClientCon.getConId()).isAdmin()) {
+                    pClientCon.deleteChatReq(pCurrentChat);
+                }
                 break;
             // Manage Permissions
             case OP_6:
@@ -301,7 +303,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                     pSingleID = null;
                     break;
 
-                    //TODO make difeerent when created new chat and wehn added
+                // TODO make difeerent when created new chat and wehn added
                 case REQ_INIT_CHAT:
                     pCurrentChat = Chat.instanceChat(respondReq);
                     CLIState.get().change(CLIState.CHAT);
@@ -309,7 +311,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                     if (pCurrentChat == null)
                         CLIState.get().change(CLIState.MAIN);
                     break;
-                    
+
                 default:
                     System.out.println(WARN_UNHANDLED_MSG_REQUEST);
                     break;

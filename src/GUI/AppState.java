@@ -46,11 +46,9 @@ public class AppState extends Thread implements ApiCodes {
                 pClientCon.write(
                         ClientAPI.newRequest().updateState(pClientCon.getConId(), GlobalMethods.getCurrentTime()));
             } catch (SocketException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.err.println("SOCKET EXCEPTION ON WRITING UPDDATE_REQ");
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.err.println("IO EXCEPTION ON WRITING UPDDATE_REQ");
             }
         }
 
@@ -83,6 +81,9 @@ public class AppState extends Thread implements ApiCodes {
         public void handleRequest(MSG request) {
             switch (request.getAction()) {
 
+                case MSG_TO_SINGLE:
+                    break;
+
                 case REQ_INIT_CHAT:
                     Chat chatInstance = Chat.instanceChat(request);
                     pClientCon.addChatToLocal(chatInstance);
@@ -110,8 +111,14 @@ public class AppState extends Thread implements ApiCodes {
         public void handleError(MSG error) {
             switch (error.getAction()) {
 
-                case ApiCodes.ERROR_CHAT_NOT_FOUND:
+                case ERROR_CHAT_NOT_FOUND:
                     System.out.println(error.toString());
+                    break;
+                case ERROR_SELF_REFERENCE:
+                    JOptionPane.showMessageDialog(null, "SELF REFERENCE");
+                    break;
+                case ERROR_CLIENT_NOT_FOUND:
+                    JOptionPane.showMessageDialog(null, "CLIENT NOT FOUND");
                     break;
 
                 default:
@@ -202,8 +209,7 @@ public class AppState extends Thread implements ApiCodes {
             try {
                 pClientCon.listen();
             } catch (ClassNotFoundException | IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println("PROBLEM LISTENING SERVER");
                 break;
             }
         }
@@ -214,6 +220,8 @@ public class AppState extends Thread implements ApiCodes {
         void onUpdate();
 
         void onNewChat(Chat newChat);
+
+        void onMeesageReceiverd(String EmisorId);
     }
 
 }

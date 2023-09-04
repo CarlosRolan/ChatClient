@@ -5,16 +5,41 @@
 
 package GUI.view.panels;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.IOException;
+
+import com.chat.Chat;
+
+import GUI.AppState;
+import api.ClientAPI;
+
 /**
  *
  * @author carlos
  */
-public class ChatPanel extends javax.swing.JPanel {
+public class ConversationPanel extends javax.swing.JPanel {
+
+	private boolean isChat = false;
+
+	private String userId;
+	private String userNick;
 
 	/**
 	 * Creates new form NewJPanel
 	 */
-	public ChatPanel() {
+	public ConversationPanel() {
+		initComponents();
+	}
+
+	public ConversationPanel(Chat chat) {
+		isChat = true;
+		initComponents();
+	}
+
+	public ConversationPanel(String receptorId, String receptorNick) {
+		userId = receptorId;
+		userNick = receptorNick;
 		initComponents();
 	}
 
@@ -28,7 +53,7 @@ public class ChatPanel extends javax.swing.JPanel {
 	private void initComponents() {
 
 		jScrollPane1 = new javax.swing.JScrollPane();
-		jList1 = new javax.swing.JList<>();
+		jMessages = new javax.swing.JList<>();
 		jScrollPane2 = new javax.swing.JScrollPane();
 		jTextPane1 = new javax.swing.JTextPane();
 		jButton1 = new javax.swing.JButton();
@@ -37,7 +62,7 @@ public class ChatPanel extends javax.swing.JPanel {
 		setMinimumSize(new java.awt.Dimension(325, 400));
 		setPreferredSize(new java.awt.Dimension(325, 400));
 
-		jList1.setModel(new javax.swing.AbstractListModel<String>() {
+		jMessages.setModel(new javax.swing.AbstractListModel<String>() {
 			String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
 
 			public int getSize() {
@@ -48,12 +73,57 @@ public class ChatPanel extends javax.swing.JPanel {
 				return strings[i];
 			}
 		});
-		jScrollPane1.setViewportView(jList1);
+		jScrollPane1.setViewportView(jMessages);
 
 		jScrollPane2.setViewportView(jTextPane1);
 
 		jButton1.setText("SEND");
 		jButton1.setAlignmentX(0.5F);
+		jButton1.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+
+				try {
+					AppState.getInstance().pClientCon.writeMessage(
+							ClientAPI.newRequest().sendSingleMsg(
+									AppState.getInstance().pClientCon.getConId(),
+									userId,
+									jTextPane1.getText()));
+				} catch (NullPointerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Unimplemented method 'mouseEntered'");
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Unimplemented method 'mouseExited'");
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Unimplemented method 'mousePressed'");
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Unimplemented method 'mouseReleased'");
+			}
+
+		});
 
 		jLabel2.setIcon(new javax.swing.ImageIcon("/home/carlos/Desktop/rawIcons/btn_copy_to_clipboard.png")); // NOI18N
 		jLabel2.setText("jLabel2");
@@ -103,7 +173,7 @@ public class ChatPanel extends javax.swing.JPanel {
 	// Variables declaration - do not modify
 	private javax.swing.JButton jButton1;
 	private javax.swing.JLabel jLabel2;
-	private javax.swing.JList<String> jList1;
+	private javax.swing.JList<String> jMessages;
 	private javax.swing.JScrollPane jScrollPane1;
 	private javax.swing.JScrollPane jScrollPane2;
 	private javax.swing.JTextPane jTextPane1;

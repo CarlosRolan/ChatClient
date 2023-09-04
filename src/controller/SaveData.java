@@ -27,7 +27,7 @@ public class SaveData {
     private final String DATA_DIR = "./data";
     private final String CHATS_DIR = DATA_DIR + "/chats/";
     private final String USER_DIR = DATA_DIR + "/user";
-    private final String USER_CONFIG = USER_DIR+ "/config.txt";
+    private final String USER_CONFIG = USER_DIR + "/config.txt";
     private final String TXT_EXT = ".txt";
 
     private XmlReader xmlReader;
@@ -38,8 +38,7 @@ public class SaveData {
         try {
             myReader = new Scanner(new File(""));
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("PROBLEM LOAD CHAT RAW");
         }
 
         while (myReader.hasNextLine()) {
@@ -59,8 +58,7 @@ public class SaveData {
             writer = new PrintWriter(chatInfo,
                     "UTF-8");
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("PROBLEM SAVING CHAT ON LOCAL");
         }
         writer.println(chat.toXML());
 
@@ -79,8 +77,7 @@ public class SaveData {
         try {
             chatInfo.createNewFile();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("PROBLEM INIT CHAT DIR");
         }
 
         return chatInfo;
