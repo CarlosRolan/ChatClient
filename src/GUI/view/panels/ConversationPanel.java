@@ -21,26 +21,25 @@ import api.ClientAPI;
 public class ConversationPanel extends javax.swing.JPanel {
 
 	private boolean isChat = false;
-
-	private String userId;
-	private String userNick;
+	private IChatLListener iChatListener;
 
 	/**
 	 * Creates new form NewJPanel
 	 */
 	public ConversationPanel() {
-		initComponents();
+		super();
 	}
 
-	public ConversationPanel(Chat chat) {
+	public ConversationPanel(Chat chat, IChatLListener listener) {
 		isChat = true;
-		initComponents();
+		iChatListener = listener;
+		initComponents(chat.getTitle(), chat.getDescription());
 	}
 
-	public ConversationPanel(String receptorId, String receptorNick) {
-		userId = receptorId;
-		userNick = receptorNick;
-		initComponents();
+	public ConversationPanel(String receptorId, String receptorNick, IChatLListener listener) {
+		isChat = false;
+		iChatListener = listener;
+		initComponents(receptorId, receptorNick);
 	}
 
 	/**
@@ -50,7 +49,7 @@ public class ConversationPanel extends javax.swing.JPanel {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
-	private void initComponents() {
+	public void initComponents(String receptorId, String receptorNick) {
 
 		jScrollPane1 = new javax.swing.JScrollPane();
 		jMessages = new javax.swing.JList<>();
@@ -73,6 +72,7 @@ public class ConversationPanel extends javax.swing.JPanel {
 				return strings[i];
 			}
 		});
+		jMessages.removeAll();
 		jScrollPane1.setViewportView(jMessages);
 
 		jScrollPane2.setViewportView(jTextPane1);
@@ -85,10 +85,10 @@ public class ConversationPanel extends javax.swing.JPanel {
 			public void mouseClicked(MouseEvent arg0) {
 
 				try {
-					AppState.getInstance().pClientCon.writeMessage(
+					AppState.getInstance().pClientCon.write(
 							ClientAPI.newRequest().sendSingleMsg(
 									AppState.getInstance().pClientCon.getConId(),
-									userId,
+									receptorId,
 									jTextPane1.getText()));
 				} catch (NullPointerException e) {
 					// TODO Auto-generated catch block
@@ -101,32 +101,28 @@ public class ConversationPanel extends javax.swing.JPanel {
 
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Unimplemented method 'mouseEntered'");
+
 			}
 
 			@Override
 			public void mouseExited(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Unimplemented method 'mouseExited'");
+
 			}
 
 			@Override
 			public void mousePressed(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Unimplemented method 'mousePressed'");
+
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Unimplemented method 'mouseReleased'");
+
 			}
 
 		});
 
 		jLabel2.setIcon(new javax.swing.ImageIcon("/home/carlos/Desktop/rawIcons/btn_copy_to_clipboard.png")); // NOI18N
-		jLabel2.setText("jLabel2");
+		jLabel2.setText(receptorNick);
 		jLabel2.setAlignmentX(0.5F);
 		jLabel2.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
 		jLabel2.setMaximumSize(new java.awt.Dimension(64, 256));
@@ -178,4 +174,14 @@ public class ConversationPanel extends javax.swing.JPanel {
 	private javax.swing.JScrollPane jScrollPane2;
 	private javax.swing.JTextPane jTextPane1;
 	// End of variables declaration
+
+	public interface IChatLListener {
+		void onMessageRecieved();
+
+		void onMessageRead();
+
+		void onMessageSent();
+
+		void onMessageWritten();
+	}
 }

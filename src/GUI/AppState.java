@@ -81,9 +81,6 @@ public class AppState extends Thread implements ApiCodes {
         public void handleRequest(MSG request) {
             switch (request.getAction()) {
 
-                case MSG_TO_SINGLE:
-                    break;
-
                 case REQ_INIT_CHAT:
                     Chat chatInstance = Chat.instanceChat(request);
                     pClientCon.addChatToLocal(chatInstance);
@@ -101,6 +98,9 @@ public class AppState extends Thread implements ApiCodes {
         public void handleMessage(MSG message) {
 
             switch (message.getAction()) {
+                case MSG_TO_SINGLE:
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message.getEmisor()));
+                    break;
                 default:
                     System.out.println(WARN_UNHANDLED_MSG_MESSAGE);
                     break;
@@ -112,7 +112,7 @@ public class AppState extends Thread implements ApiCodes {
             switch (error.getAction()) {
 
                 case ERROR_CHAT_NOT_FOUND:
-                    System.out.println(error.toString());
+                    JOptionPane.showMessageDialog(null, "CHAT NOT FOUND");
                     break;
                 case ERROR_SELF_REFERENCE:
                     JOptionPane.showMessageDialog(null, "SELF REFERENCE");
@@ -154,11 +154,12 @@ public class AppState extends Thread implements ApiCodes {
                             Chat updatedChat = Chat.instanceChat(iter);
                             pClientCon.setChat(updatedChat);
                         }
-                        if (iter.getAction().equals(REQ_CON_INFO)) {
-                            pOnlineUsers.add(iter.getEmisor() + "_" + iter.getBody());
+                        if (iter.getAction().equals(REQ_INIT_CON)) {
+                            pOnlineUsers.add(iter.getEmisor() + "_" + iter.getReceptor() + "_" + iter.getBody());
                         }
                     }
-                    iUpdate.onUpdate();
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.onUpdate());
+
                     break;
 
                 default:
@@ -221,7 +222,7 @@ public class AppState extends Thread implements ApiCodes {
 
         void onNewChat(Chat newChat);
 
-        void onMeesageReceiverd(String EmisorId);
+        void onMessageReceived(String emisorId);
     }
 
 }

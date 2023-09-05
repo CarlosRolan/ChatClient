@@ -1,18 +1,17 @@
 package GUI.view;
 
-import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
-
-import javax.swing.SwingUtilities;
+import javax.swing.JFrame;
 import javax.swing.tree.TreePath;
 
 import com.chat.Chat;
 
 import GUI.AppState;
 import GUI.AppState.IUpdate;
+import GUI.SwingUtils;
 import GUI.components.TreeViewUsers;
-import GUI.components.TreeViewUsers.Events;
+import GUI.components.TreeViewUsers.ITreeViewListener;
 import GUI.view.panels.ConversationPanel;
+import GUI.view.panels.ConversationPanel.IChatLListener;
 
 /**
  *
@@ -29,7 +28,7 @@ public class MainMenu extends javax.swing.JFrame {
 	 */
 	public MainMenu() {
 		initComponents();
-		AppState.getInstance().setOnUpdate(updateListener);
+		AppState.getInstance().setOnUpdate(iUpdateListener);
 	}
 
 	/**
@@ -41,26 +40,7 @@ public class MainMenu extends javax.swing.JFrame {
 	private void initComponents() {
 
 		panel_list = new javax.swing.JScrollPane();
-		tree_users = new TreeViewUsers(new Events() {
-
-			@Override
-			public void onRightClick(int selRow, TreePath selPath) {
-
-				String userPathTag = selPath.getPathComponent(1).toString();
-
-				if ("Users".equals(userPathTag)) {
-					String[] candidateInfo = selPath.getLastPathComponent().toString().split("_");
-					for (int i = 0; i < candidateInfo.length; i++) {
-						System.out.println("INFO [" + i + "]" + candidateInfo[i]);
-					}
-				}
-
-				System.out.println("ROW " + selRow);
-				System.out.println("PATH " + selPath);
-
-			}
-
-		});
+		tree_users = new TreeViewUsers(iTreeViewListener);
 		jMenuBar1 = new javax.swing.JMenuBar();
 		jMenu1 = new javax.swing.JMenu();
 		jMenu2 = new javax.swing.JMenu();
@@ -85,28 +65,30 @@ public class MainMenu extends javax.swing.JFrame {
 		setJMenuBar(jMenuBar1);
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(panel_list, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(p_chat_panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(p_chat_panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panel_list, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE))
-                .addContainerGap())
-        );
+		getContentPane().setLayout(layout);
+		layout.setHorizontalGroup(
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+								.addContainerGap()
+								.addComponent(panel_list, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+										javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(p_chat_panel, javax.swing.GroupLayout.DEFAULT_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addContainerGap()));
+		layout.setVerticalGroup(
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+								.addContainerGap()
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+										.addComponent(p_chat_panel, javax.swing.GroupLayout.DEFAULT_SIZE,
+												javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(panel_list, javax.swing.GroupLayout.DEFAULT_SIZE, 361,
+												Short.MAX_VALUE))
+								.addContainerGap()));
 
-        panel_list.getAccessibleContext().setAccessibleName("panel_list");
-        p_chat_panel.getAccessibleContext().setAccessibleName("p_chat_panel");
+		panel_list.getAccessibleContext().setAccessibleName("panel_list");
+		p_chat_panel.getAccessibleContext().setAccessibleName("p_chat_panel");
 
 		pack();
 	}// </editor-fold>
@@ -120,80 +102,74 @@ public class MainMenu extends javax.swing.JFrame {
 	private TreeViewUsers tree_users;
 	private ConversationPanel p_chat_panel;
 	// End of variables declaration
-	private final IUpdate updateListener = new IUpdate() {
+
+	private final ITreeViewListener iTreeViewListener = new ITreeViewListener() {
+
+		@Override
+		public void onSingleRightClick(int selRow, TreePath selPath) {
+
+			String userPathTag = selPath.getPathComponent(1).toString();
+
+			if ("Users".equals(userPathTag)) {
+				String[] receptorInfo = selPath.getLastPathComponent().toString().split("_");
+				for (int i = 0; i < receptorInfo.length; i++) {
+					System.out.println("INFO [" + i + "]" + receptorInfo[i]);
+				}
+
+				SwingUtils.executeOnSwingThread(new Runnable() {
+
+					@Override
+					public void run() {
+						JFrame conversation = new JFrame(selPath.toString());
+						conversation.add(new ConversationPanel(receptorInfo[0], receptorInfo[1], iChatListener));
+						conversation.setResizable(false);
+						conversation.pack();
+						conversation.setVisible(true);
+					}
+				});
+			}
+		}
+
+	};
+	private final IUpdate iUpdateListener = new IUpdate() {
 
 		@Override
 		public void onUpdate() {
-
-			Runnable runnable = new Runnable() {
-
-				@Override
-				public void run() {
-					tree_users.update();
-				}
-
-			};
-
-			if (EventQueue.isDispatchThread()) {
-				runnable.run();
-			} else {
-				try {
-					SwingUtilities.invokeAndWait(runnable);
-				} catch (InvocationTargetException | InterruptedException e) {
-					// Handle exception
-				}
-			}
-
+			tree_users.update();
 		}
 
 		@Override
 		public void onNewChat(Chat newChat) {
 
-			Runnable runnable = new Runnable() {
+		}
 
-				@Override
-				public void run() {
-					// panel_tab_chat_list.addChatItem(newChat);
-					onUpdate();
-				}
+		@Override
+		public void onMessageReceived(String emisorId) {
+			tree_users.addAlertOnRef(emisorId);
+		}
 
-			};
+	};
 
-			/*
-			 * if (EventQueue.isDispatchThread()) {
-			 * runnable.run();
-			 * } else {
-			 * try {
-			 * SwingUtilities.invokeAndWait(runnable);
-			 * } catch (InvocationTargetException | InterruptedException e) {
-			 * // Handle exception
-			 * }
-			 * }
-			 */
+	private final IChatLListener iChatListener = new IChatLListener() {
+
+		@Override
+		public void onMessageRecieved() {
 
 		}
 
 		@Override
-		public void onMeesageReceiverd(String EmisorId) {
+		public void onMessageRead() {
 
-			Runnable runnable = new Runnable() {
+		}
 
-				@Override
-				public void run() {
-					tree_users.newMessageTag(EmisorId);
-				}
+		@Override
+		public void onMessageSent() {
 
-			};
+		}
 
-			if (EventQueue.isDispatchThread()) {
-				runnable.run();
-			} else {
-				try {
-					SwingUtilities.invokeAndWait(runnable);
-				} catch (InvocationTargetException | InterruptedException e) {
-					// Handle exception
-				}
-			}
+		@Override
+		public void onMessageWritten() {
+
 		}
 
 	};
