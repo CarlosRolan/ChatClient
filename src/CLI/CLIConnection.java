@@ -14,8 +14,8 @@ import com.comunication.handlers.IMSGHandler;
 import com.comunication.handlers.IPKGHandler;
 
 import api.ClientAPI;
-import controller.SaveData;
 import controller.connection.ClientConnection;
+import controller.manager.FileManager;
 
 public class CLIConnection extends Thread implements ApiCodes, CLIActions {
 
@@ -121,7 +121,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
             exitSingle();
         } else {
             if (CLIState.get() == CLIState.SINGLE || pSingleID != null || pSincleNick != null) {
-                pClientCon.sendToSingleReq(pSingleID, op);
+                pClientCon.sendToSingleReq(pSingleID, pSincleNick, op);
             }
         }
     }
@@ -307,7 +307,7 @@ public class CLIConnection extends Thread implements ApiCodes, CLIActions {
                 case REQ_INIT_CHAT:
                     pCurrentChat = Chat.instanceChat(respondReq);
                     CLIState.get().change(CLIState.CHAT);
-                    new SaveData().saveChatRaw(pCurrentChat);
+                    FileManager.getInstance().saveChatRaw(pCurrentChat);
                     if (pCurrentChat == null)
                         CLIState.get().change(CLIState.MAIN);
                     break;

@@ -5,14 +5,19 @@
 
 package GUI.view.panels;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.io.IOException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+
+import javax.swing.DefaultListModel;
 
 import com.chat.Chat;
+import com.comunication.MSG;
 
 import GUI.AppState;
-import api.ClientAPI;
+import controller.manager.FileManager;
 
 /**
  *
@@ -22,6 +27,10 @@ public class ConversationPanel extends javax.swing.JPanel {
 
 	private boolean isChat = false;
 	private IChatLListener iChatListener;
+	public DefaultListModel<String> msgListModel = new DefaultListModel<String>();
+
+	public String title;
+	public String id;
 
 	/**
 	 * Creates new form NewJPanel
@@ -36,10 +45,16 @@ public class ConversationPanel extends javax.swing.JPanel {
 		initComponents(chat.getTitle(), chat.getDescription());
 	}
 
-	public ConversationPanel(String receptorId, String receptorNick, IChatLListener listener) {
+	public ConversationPanel(String convId, String convTitle, IChatLListener listener) {
 		isChat = false;
 		iChatListener = listener;
-		initComponents(receptorId, receptorNick);
+		id = convId;
+		title = convTitle;
+		initComponents(convId, convTitle);
+	}
+
+	public void addLine(String line) {
+		msgListModel.addElement(line);
 	}
 
 	/**
@@ -49,10 +64,17 @@ public class ConversationPanel extends javax.swing.JPanel {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
-	public void initComponents(String receptorId, String receptorNick) {
+	private void initComponents(String receptorId, String receptorNick) {
+
+		FileManager.getInstance().initHistoryFile(id, title);
+
+		ArrayList<String> lines = FileManager.getInstance().loadHistory();
+		for (String line : lines) {
+			addLine(line);
+		}
 
 		jScrollPane1 = new javax.swing.JScrollPane();
-		jMessages = new javax.swing.JList<>();
+		jMessages = new javax.swing.JList<>(msgListModel);
 		jScrollPane2 = new javax.swing.JScrollPane();
 		jTextPane1 = new javax.swing.JTextPane();
 		jButton1 = new javax.swing.JButton();
@@ -61,17 +83,6 @@ public class ConversationPanel extends javax.swing.JPanel {
 		setMinimumSize(new java.awt.Dimension(325, 400));
 		setPreferredSize(new java.awt.Dimension(325, 400));
 
-		jMessages.setModel(new javax.swing.AbstractListModel<String>() {
-			String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-
-			public int getSize() {
-				return strings.length;
-			}
-
-			public String getElementAt(int i) {
-				return strings[i];
-			}
-		});
 		jMessages.removeAll();
 		jScrollPane1.setViewportView(jMessages);
 
@@ -79,44 +90,10 @@ public class ConversationPanel extends javax.swing.JPanel {
 
 		jButton1.setText("SEND");
 		jButton1.setAlignmentX(0.5F);
-		jButton1.addMouseListener(new MouseListener() {
-
+		jButton1.addActionListener(new ActionListener() {
 			@Override
-			public void mouseClicked(MouseEvent arg0) {
-
-				try {
-					AppState.getInstance().pClientCon.write(
-							ClientAPI.newRequest().sendSingleMsg(
-									AppState.getInstance().pClientCon.getConId(),
-									receptorId,
-									jTextPane1.getText()));
-				} catch (NullPointerException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent arg0) {
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
-
+			public void actionPerformed(ActionEvent arg0) {
+				actionSend();
 			}
 
 		});
@@ -175,12 +152,31 @@ public class ConversationPanel extends javax.swing.JPanel {
 	private javax.swing.JTextPane jTextPane1;
 	// End of variables declaration
 
+	private void actionSend() {
+		try {
+
+			String text = jTextPane1.getText();
+
+			AppState.getInstance().pClientCon.sendToSingleReq(id, title, text);
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+			LocalDateTime now = LocalDateTime.now();
+
+			iChatListener.onMessageSent(AppState.getInstance().pClientCon.getNick(), dtf.format(now), text,
+					msgListModel);
+
+		} catch (NullPointerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public interface IChatLListener {
-		void onMessageRecieved();
+		void onMessageRecieved(MSG msgReceived);
 
 		void onMessageRead();
 
-		void onMessageSent();
+		void onMessageSent(String nick, String dateTime, String text, DefaultListModel<String> listModel);
 
 		void onMessageWritten();
 	}

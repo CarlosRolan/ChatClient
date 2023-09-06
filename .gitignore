@@ -3,5 +3,6 @@
 .project
 .classpath
 .vscode
+.data/*
 lib
 bin

@@ -19,11 +19,13 @@ import com.comunication.handlers.IPKGHandler;
 import GUI.view.MainMenu;
 import api.ClientAPI;
 import controller.connection.ClientConnection;
+import controller.manager.FileManager;
 import utils.GlobalMethods;
 
 public class AppState extends Thread implements ApiCodes {
 
     private static AppState instance = null;
+    private static final long UPDATE_TIME = 5000;
 
     /* STATIC */
     public static AppState getInstance() {
@@ -70,7 +72,8 @@ public class AppState extends Thread implements ApiCodes {
     private AppState() {
         setTheme();
         pClientCon = new ClientConnection(askForUserName(), IMSG_HANDLER, IPCKG_HANDLER);
-        new Timer().scheduleAtFixedRate(tTask, 1000, 5000);
+        new Timer().scheduleAtFixedRate(tTask, 1000, UPDATE_TIME);
+        FileManager.initInstance(pClientCon);
     }
 
     /* IMPLEMENTATIONS */
@@ -99,7 +102,7 @@ public class AppState extends Thread implements ApiCodes {
 
             switch (message.getAction()) {
                 case MSG_TO_SINGLE:
-                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message.getEmisor()));
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message));
                     break;
                 default:
                     System.out.println(WARN_UNHANDLED_MSG_MESSAGE);
@@ -222,7 +225,7 @@ public class AppState extends Thread implements ApiCodes {
 
         void onNewChat(Chat newChat);
 
-        void onMessageReceived(String emisorId);
+        void onMessageReceived(MSG msg);
     }
 
 }

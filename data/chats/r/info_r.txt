@@ -1,3 +1,0 @@
-<chat id=3120130 title='r'' desc='f''>
-	<member connectionRef=13 name='Bart'' rights='ADMIN'/>
-</chat>

@@ -55,11 +55,14 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG sendSingleMsg(String emisorId, String receptorId, String msgTxt) {
+    public MSG sendSingleMsg(String emisorId, String emisorNick, String receptorId, String receptorNick,
+            String msgTxt) {
         msgOut = new MSG(MSG.Type.MESSAGE);
 
         msgOut.setAction(MSG_TO_SINGLE);
         msgOut.setEmisor(emisorId);
+        msgOut.setParameter(0, emisorNick);
+        msgOut.setParameter(1, receptorNick);
         msgOut.setReceptor(receptorId);
         msgOut.setBody(msgTxt);
 

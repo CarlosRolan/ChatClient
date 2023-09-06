@@ -57,7 +57,6 @@ public class ClientConnection extends Connection implements Env {
 
     public ClientConnection(String nickName, IMSGHandler msgHandler, IPKGHandler pckgHandler) {
         super(nickName, msgHandler, pckgHandler);
-
     }
 
     /* PUBLIC */
@@ -70,8 +69,13 @@ public class ClientConnection extends Connection implements Env {
         write(ClientAPI.newRequest().showAllMembers(chatId));
     }
 
-    public void sendToSingleReq(String singleId, String txt) throws SocketException, IOException {
-        write(ClientAPI.newRequest().sendSingleMsg(getConId(), singleId, txt));
+    // TODO we need the bnick of the requested single chat
+    public void sendToSingleReq(String singleId, String singleNick, String txt) {
+        try {
+            write(ClientAPI.newRequest().sendSingleMsg(getConId(), getNick(), singleId, singleNick, txt));
+        } catch (IOException e) {
+
+        }
     }
 
     public void sendToChatReq(Chat currentChat, String txt) throws SocketException, IOException {

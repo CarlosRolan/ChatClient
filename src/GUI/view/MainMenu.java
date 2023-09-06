@@ -1,9 +1,14 @@
 package GUI.view;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.tree.TreePath;
 
 import com.chat.Chat;
+import com.comunication.MSG;
 
 import GUI.AppState;
 import GUI.AppState.IUpdate;
@@ -12,6 +17,7 @@ import GUI.components.TreeViewUsers;
 import GUI.components.TreeViewUsers.ITreeViewListener;
 import GUI.view.panels.ConversationPanel;
 import GUI.view.panels.ConversationPanel.IChatLListener;
+import controller.manager.FileManager;
 
 /**
  *
@@ -38,6 +44,8 @@ public class MainMenu extends javax.swing.JFrame {
 	 */
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
 	private void initComponents() {
+
+		setTitle(AppState.getInstance().pClientCon.getNick());
 
 		panel_list = new javax.swing.JScrollPane();
 		tree_users = new TreeViewUsers(iTreeViewListener);
@@ -100,7 +108,7 @@ public class MainMenu extends javax.swing.JFrame {
 	private javax.swing.JMenuBar jMenuBar1;
 	private javax.swing.JScrollPane panel_list;
 	private TreeViewUsers tree_users;
-	private ConversationPanel p_chat_panel;
+	private ConversationPanel p_chat_panel = new ConversationPanel();
 	// End of variables declaration
 
 	private final ITreeViewListener iTreeViewListener = new ITreeViewListener() {
@@ -109,9 +117,10 @@ public class MainMenu extends javax.swing.JFrame {
 		public void onSingleRightClick(int selRow, TreePath selPath) {
 
 			String userPathTag = selPath.getPathComponent(1).toString();
+			String[] receptorInfo = selPath.getLastPathComponent().toString().split("_");
 
 			if ("Users".equals(userPathTag)) {
-				String[] receptorInfo = selPath.getLastPathComponent().toString().split("_");
+
 				for (int i = 0; i < receptorInfo.length; i++) {
 					System.out.println("INFO [" + i + "]" + receptorInfo[i]);
 				}
@@ -120,8 +129,9 @@ public class MainMenu extends javax.swing.JFrame {
 
 					@Override
 					public void run() {
-						JFrame conversation = new JFrame(selPath.toString());
-						conversation.add(new ConversationPanel(receptorInfo[0], receptorInfo[1], iChatListener));
+						JFrame conversation = new JFrame("Chat with " + receptorInfo[1]);
+						p_chat_panel = new ConversationPanel(receptorInfo[0], receptorInfo[1], iChatListener);
+						conversation.add(p_chat_panel);
 						conversation.setResizable(false);
 						conversation.pack();
 						conversation.setVisible(true);
@@ -144,8 +154,9 @@ public class MainMenu extends javax.swing.JFrame {
 		}
 
 		@Override
-		public void onMessageReceived(String emisorId) {
-			tree_users.addAlertOnRef(emisorId);
+		public void onMessageReceived(MSG msg) {
+			tree_users.addAlertOnRef(msg.getEmisor());
+			iChatListener.onMessageRecieved(msg);
 		}
 
 	};
@@ -153,22 +164,51 @@ public class MainMenu extends javax.swing.JFrame {
 	private final IChatLListener iChatListener = new IChatLListener() {
 
 		@Override
-		public void onMessageRecieved() {
+		public void onMessageRecieved(MSG msgReceived) {
+			String id = msgReceived.getEmisor();
+			String nick = msgReceived.getParameter(0);
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+			LocalDateTime now = LocalDateTime.now();
+
+			String dateTime = dtf.format(now);
+			String text = msgReceived.getBody();
+
+			FileManager.getInstance().initHistoryFile(id, nick);
+
+			FileManager.getInstance().saveHistory(nick, dateTime, text);
+
+			if (p_chat_panel != null) {
+				String msgAdded = "[" + dateTime + "]" + nick + ":" + text;
+				p_chat_panel.addLine(msgAdded);
+			}
 
 		}
 
 		@Override
 		public void onMessageRead() {
+			// TODO double check
 
 		}
 
 		@Override
-		public void onMessageSent() {
+		public void onMessageSent(String nick, String dateTime, String text, DefaultListModel<String> listModel) {
+
+			FileManager.getInstance().saveHistory(nick, dateTime, text);
+			SwingUtils.executeOnSwingThread(new Runnable() {
+
+				@Override
+				public void run() {
+					String msgAdded = "[" + dateTime + "]" + nick + ":" + text;
+					listModel.addElement(msgAdded);
+				}
+			});
 
 		}
 
 		@Override
 		public void onMessageWritten() {
+			// TODO sent CHECK
 
 		}
 
