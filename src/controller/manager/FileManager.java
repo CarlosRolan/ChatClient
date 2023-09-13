@@ -10,10 +10,8 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import javax.sql.rowset.spi.XmlReader;
-
 import com.chat.Chat;
-import com.comunication.Connection;
+import com.controller.Connection;
 
 public class FileManager {
 
@@ -41,8 +39,6 @@ public class FileManager {
     private File chatsDir;
     private File usersDir;
     private File historyFile;
-
-    private XmlReader xmlReader;
 
     private FileManager(Connection userCon) {
         initPartenDirs(userCon.getConId(), userCon.getNick());

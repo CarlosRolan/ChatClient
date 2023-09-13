@@ -1,10 +1,12 @@
 package api;
 
+import com.api.Codes;
 import com.chat.Chat;
-import com.comunication.ApiCodes;
-import com.comunication.MSG;
+import com.data.MSG;
 
-public class ClientAPI implements ApiCodes {
+public class ClientAPI implements Codes {
+
+    //TODO AVOID TO USE CHATS AND CONNECTIONS AND USE ONLY REFS
 
     private MSG msgOut = null;
 
@@ -16,7 +18,7 @@ public class ClientAPI implements ApiCodes {
 
     }
 
-    public MSG showAllOnline(String emisorId) {
+    public MSG showAllOnlineReq(String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
         msgOut.setAction(REQ_SHOW_ALL_CON);
         msgOut.setEmisor(emisorId);
@@ -28,7 +30,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG askForSingle(String requesterId, String candidateId, String requesterNick) {
+    public MSG askForSingleReq(String requesterId, String candidateId, String requesterNick) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_SINGLE);
@@ -39,7 +41,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG permissionRespond(boolean candidateRespond, String requesterId, String candidateId,
+    public MSG permissionRespondReq(boolean candidateRespond, String requesterId, String candidateId,
             String candidateNick) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
@@ -55,7 +57,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG sendSingleMsg(String emisorId, String emisorNick, String receptorId, String receptorNick,
+    public MSG sendSingleMsgReq(String emisorId, String emisorNick, String receptorId, String receptorNick,
             String msgTxt) {
         msgOut = new MSG(MSG.Type.MESSAGE);
 
@@ -69,7 +71,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG exitSingle(String emisorId, String receptorId) {
+    public MSG exitSingleReq(String emisorId, String receptorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_EXIT_SINGLE);
@@ -80,7 +82,7 @@ public class ClientAPI implements ApiCodes {
 
     }
 
-    public MSG showAllYourChats(String emisorId) {
+    public MSG showAllYourChatsReq(String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
         msgOut.setAction(REQ_SHOW_ALL_CHAT);
         msgOut.setEmisor(emisorId);
@@ -92,7 +94,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG selectChat(String ChatId, String emisorId) {
+    public MSG selectChatReq(String ChatId, String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
         msgOut.setAction(REQ_CHAT);
         msgOut.setEmisor(emisorId);
@@ -100,7 +102,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG requestNewChat(int numChats, String creatorId, String creatorNick, String ChatTitle, String ChatDesc) {
+    public MSG requestNewChatReq(int numChats, String creatorId, String creatorNick, String ChatTitle, String ChatDesc) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         String[] parameters = { ChatTitle, ChatDesc };
@@ -115,7 +117,7 @@ public class ClientAPI implements ApiCodes {
 
     }
 
-    public MSG sendMsgToChat(Chat currentChat, String emisorId, String emisorNick, String text) {
+    public MSG sendMsgToChatReq(Chat currentChat, String emisorId, String emisorNick, String text) {
 
         msgOut = new MSG(MSG.Type.MESSAGE);
 
@@ -128,7 +130,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG requestUserInfo(String emisorId) {
+    public MSG requestUserInfoReq(String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_SELECT_USER);
@@ -137,7 +139,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG addMemberToChat(String chatId, String memberId) {
+    public MSG addMemberToChatReq(String chatId, String memberId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_ADD_MEMBER);
@@ -148,18 +150,18 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG deleteMemberinChat(String ChatId, String memberId) {
+    public MSG deleteMemberinChatReq(String chatId, String memberId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_DELETE_MEMBER);
-        msgOut.setEmisor(ChatId);
+        msgOut.setEmisor(chatId);
         msgOut.setReceptor(memberId);
         msgOut.setParameter(0, "REG");
 
         return msgOut;
     }
 
-    public MSG showAllMembers(String ChatId) {
+    public MSG showAllMembersReq(String ChatId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_SHOW_ALL_MEMBERS_OF_CHAT);
@@ -168,7 +170,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG exitChat(String emisorId, String chatId) {
+    public MSG exitChatReq(String emisorId, String chatId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_EXIT_CHAT);
@@ -178,7 +180,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG deleteChat(String emisorId, String chatId) {
+    public MSG deleteChatReq(String emisorId, String chatId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_DEL_CHAT);
@@ -188,7 +190,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG getChatsInfo(String emisorId) {
+    public MSG getChatsInfoReq(String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_GET_CHATS_INFO);
@@ -197,7 +199,7 @@ public class ClientAPI implements ApiCodes {
         return msgOut;
     }
 
-    public MSG getUsersInfo(String emisorId) {
+    public MSG getUsersInfoReq(String emisorId) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_GET_CHATS_INFO);
@@ -207,7 +209,7 @@ public class ClientAPI implements ApiCodes {
     }
 
     /* GUI */
-    public MSG updateState(String emisorId, String curretnTime) {
+    public MSG updateStateReq(String emisorId, String curretnTime) {
         MSG updateState = new MSG(MSG.Type.REQUEST);
 
         updateState.setAction(REQ_UPDATE_STATE);

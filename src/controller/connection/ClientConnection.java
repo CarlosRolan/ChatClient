@@ -5,50 +5,15 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.chat.Chat;
-import com.comunication.Connection;
-import com.comunication.handlers.IMSGHandler;
-import com.comunication.handlers.IPKGHandler;
+import com.controller.Connection;
+import com.controller.handlers.IMSGHandler;
+import com.controller.handlers.IPKGHandler;
 
 import api.ClientAPI;
 
 public class ClientConnection extends Connection implements Env {
-
-    private List<Chat> pChats = new ArrayList<Chat>();
-
-    /* SETTERS */
-
-    public int getNumChats() {
-        return pChats.size();
-    }
-
-    public List<Chat> getChats() {
-        return pChats;
-    }
-
-    public Chat getChat(String chatId) {
-        for (Chat iChat : pChats) {
-            if (iChat.getChatId().equals(chatId)) {
-                return iChat;
-            }
-        }
-        return null;
-    }
-
-    public void setChats(List<Chat> updatedChats) {
-        pChats = updatedChats;
-    }
-
-    public void setChat(Chat updatedChat) {
-        for (Chat iChat : pChats) {
-            if (iChat.getChatId().equals(updatedChat.getChatId())) {
-                iChat = updatedChat;
-            }
-        }
-    }
 
     /* CONSTRUCTORS */
     public ClientConnection(Socket socket, IMSGHandler msgHandler, IPKGHandler pckgHandler) {
@@ -61,77 +26,96 @@ public class ClientConnection extends Connection implements Env {
 
     /* PUBLIC */
     /* REQUEST */
-    public void showAllChatsReq() throws SocketException, IOException {
-        write(ClientAPI.newRequest().showAllYourChats(getConId()));
+    public void showAllChats() throws SocketException, IOException {
+        write(ClientAPI.newRequest().showAllYourChatsReq(getConId()));
     }
 
-    public void showAllMemberforChatReq(String chatId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().showAllMembers(chatId));
+    public void showAllMemberforChat(String chatId) throws SocketException, IOException {
+        write(ClientAPI.newRequest().showAllMembersReq(chatId));
     }
 
     // TODO we need the bnick of the requested single chat
-    public void sendToSingleReq(String singleId, String singleNick, String txt) {
+    public void sendToSingle(String singleId, String singleNick, String txt) {
         try {
-            write(ClientAPI.newRequest().sendSingleMsg(getConId(), getNick(), singleId, singleNick, txt));
+            write(ClientAPI.newRequest().sendSingleMsgReq(
+                    getConId(),
+                    getNick(),
+                    singleId,
+                    singleNick,
+                    txt));
         } catch (IOException e) {
 
         }
     }
 
-    public void sendToChatReq(Chat currentChat, String txt) throws SocketException, IOException {
-        write(ClientAPI.newRequest().sendMsgToChat(currentChat, getConId(), getNick(), txt));
+    public void sendToChat(String chatId, String txt) {
+    
     }
 
-    public void exitSingleReq(String singleId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitSingle(getConId(), singleId));
+    public void sendToChat(Chat currentChat, String txt) throws SocketException, IOException {
+        write(ClientAPI.newRequest().sendMsgToChatReq(
+                currentChat,
+                getConId(),
+                getNick(),
+                txt));
     }
 
-    public void exitChatReq(Chat selectedChat) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitChat(getConId(), selectedChat.getChatId()));
+    public void exitSingle(String singleId) throws SocketException, IOException {
+        write(ClientAPI.newRequest().exitSingleReq(
+                getConId(),
+                singleId));
     }
 
-    public void deleteChatReq(Chat deletedChat) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitChat(getConId(), deletedChat.getChatId()));
+    public void exitChat(Chat selectedChat) throws SocketException, IOException {
+        write(ClientAPI.newRequest().exitChatReq(
+                getConId(),
+                selectedChat.getChatId()));
     }
 
-    public void addMemberToChatReq(Chat currentChat, String memberId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().addMemberToChat(currentChat.getChatId(), memberId));
+    public void deleteChat(Chat deletedChat) throws SocketException, IOException {
+        write(ClientAPI.newRequest().exitChatReq(
+                getConId(),
+                deletedChat.getChatId()));
     }
 
-    public void deleteMemberReq(Chat currentChat, String memberId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().deleteMemberinChat(currentChat.getChatId(), memberId));
+    public void addMemberToChat(Chat currentChat, String memberId) throws SocketException, IOException {
+        write(ClientAPI.newRequest().addMemberToChatReq(
+                currentChat.getChatId(),
+                memberId));
     }
 
-    public void createChatReq(String title, String desc) throws SocketException, IOException {
-        write(
-                ClientAPI.newRequest().requestNewChat(getNumChats(), getConId(),
-                        getNick(), title,
-                        desc));
+    public void deleteMember(Chat currentChat, String memberId) throws SocketException, IOException {
+        write(ClientAPI.newRequest().deleteMemberinChatReq(
+                currentChat.getChatId(),
+                memberId));
     }
 
-    public void refreshStateReq() throws SocketException, IOException {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-
-        write(ClientAPI.newRequest().updateState(getConId(), dtf.format(now)));
-    }
-
-    /* RESPONDS */
-    public void createChat(Chat newChat) {
-        pChats.add(newChat);
-    }
-
-    public void updateChat(Chat updated) {
-        for (Chat chat : pChats) {
-            if (updated.getChatId().equals(chat.getChatId())) {
-                chat = updated;
-            }
+    public void newChat(String title, String desc, int numberChats) {
+        try {
+            write(
+                    ClientAPI.newRequest().requestNewChatReq(
+                            numberChats,
+                            getConId(),
+                            getNick(),
+                            title,
+                            desc));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
-    public void addChatToLocal(Chat chat) {
-        pChats.add(chat);
+    public void refreshState() throws SocketException, IOException {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+
+        write(ClientAPI.newRequest().updateStateReq(getConId(), dtf.format(now)));
     }
+
+    /* RESPONDS */
 
     /* OVERRIDE */
 

@@ -9,67 +9,98 @@ import java.util.TimerTask;
 
 import javax.swing.JOptionPane;
 
+import com.api.Codes;
 import com.chat.Chat;
-import com.comunication.ApiCodes;
-import com.comunication.MSG;
-import com.comunication.PKG;
-import com.comunication.handlers.IMSGHandler;
-import com.comunication.handlers.IPKGHandler;
+import com.chat.ChatBuilder;
+import com.controller.handlers.IMSGHandler;
+import com.controller.handlers.IPKGHandler;
+import com.data.MSG;
+import com.data.PKG;
 
 import GUI.view.MainMenu;
-import api.ClientAPI;
 import controller.connection.ClientConnection;
 import controller.manager.FileManager;
-import utils.GlobalMethods;
 
-public class AppState extends Thread implements ApiCodes {
+public class GUI extends Thread implements Codes {
 
-    private static AppState instance = null;
+    private static volatile GUI instance = null;
     private static final long UPDATE_TIME = 5000;
 
     /* STATIC */
-    public static AppState getInstance() {
+    synchronized public static GUI getInstance() {
         if (instance == null) {
-            instance = new AppState();
+            instance = new GUI();
         }
 
         return instance;
     }
 
     /* PROPERTIES */
-    private volatile List<String> pOnlineUsers = new ArrayList<>();
-    private IUpdate iUpdate;
-    public final ClientConnection pClientCon;
+    /* FINAL */
     private final TimerTask tTask = new TimerTask() {
 
         @Override
         public void run() {
             try {
-                pClientCon.write(
-                        ClientAPI.newRequest().updateState(pClientCon.getConId(), GlobalMethods.getCurrentTime()));
-            } catch (SocketException e) {
+                pClientCon.refreshState();
+            } catch (final SocketException e) {
                 System.err.println("SOCKET EXCEPTION ON WRITING UPDDATE_REQ");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 System.err.println("IO EXCEPTION ON WRITING UPDDATE_REQ");
             }
         }
 
     };
 
-    synchronized public List<String> getOnlineUsersList() {
-        return pOnlineUsers;
+    public final ClientConnection pClientCon;
+
+    private List<String> pConRefList = new ArrayList<>();
+    private List<String> pChatRefList = new ArrayList<>();
+    private IGUIListener iUpdate;
+
+    /* GETTERs */
+    public List<String> getChatRefList() {
+        return pChatRefList;
     }
 
-    public ClientConnection getClientConnection() {
-        return pClientCon;
+    public List<String> getConRefList() {
+        return pConRefList;
     }
 
-    public void setOnUpdate(IUpdate iUpdate2) {
+    /* SETTERs */
+    public void addChatRef(String chatRef) {
+        pChatRefList.add(chatRef);
+    }
+
+    public void addConRef(String conRef) {
+        pConRefList.add(conRef);
+    }
+
+    public void setOnUpdate(IGUIListener iUpdate2) {
         iUpdate = iUpdate2;
     }
 
+    /* PRIVATE METHODs */
+    private boolean isNewChatReference(String chatReference) {
+        for (String iter : pChatRefList) {
+            if (iter.equals(chatReference)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isNewConReference(String conRef) {
+        for (String iter : pConRefList) {
+            if (iter.equals(conRef)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /* CONSTRUCTOR */
-    private AppState() {
+    private GUI() {
         setTheme();
         pClientCon = new ClientConnection(askForUserName(), IMSG_HANDLER, IPCKG_HANDLER);
         new Timer().scheduleAtFixedRate(tTask, 1000, UPDATE_TIME);
@@ -85,13 +116,19 @@ public class AppState extends Thread implements ApiCodes {
             switch (request.getAction()) {
 
                 case REQ_INIT_CHAT:
-                    Chat chatInstance = Chat.instanceChat(request);
-                    pClientCon.addChatToLocal(chatInstance);
-                    iUpdate.onNewChat(chatInstance);
+                    Chat chatInstance = ChatBuilder.newChat(request);
+
+                    if (isNewChatReference(chatInstance.getReference())) {
+                        addChatRef(chatInstance.getReference());
+                        SwingUtils.executeOnSwingThread(() -> iUpdate.onNewChat(chatInstance));
+                    } else {
+                        // TODO UNREACHEABLE CODE CHAT IS NEVER GONNA BE THE SAME
+                        JOptionPane.showMessageDialog(null, "CHAT ALREADY CREATED");
+                    }
                     break;
 
                 default:
-                    System.out.println(WARN_UNHANDLED_MSG_REQUEST);
+                    System.out.println(WARN_UNREGISTERED_MSG_REQUEST_ACTION);
                     break;
             }
 
@@ -105,7 +142,7 @@ public class AppState extends Thread implements ApiCodes {
                     SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message));
                     break;
                 default:
-                    System.out.println(WARN_UNHANDLED_MSG_MESSAGE);
+                    System.out.println(WARN_UNREGISTERED_MSG_MESSAGE_ACTION);
                     break;
             }
         }
@@ -125,9 +162,15 @@ public class AppState extends Thread implements ApiCodes {
                     break;
 
                 default:
-                    System.out.println(WARN_UNHANDLED_MSG_ERROR);
+                    System.out.println(WARN_UREGISTERED_MSG_ERROR_ACTION);
                     break;
             }
+        }
+
+        @Override
+        public void unHandledMSG(MSG arg0) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'unHandledMSG'");
         }
     };
 
@@ -139,7 +182,7 @@ public class AppState extends Thread implements ApiCodes {
             switch (mixed.getPKGName()) {
 
                 default:
-                    System.out.println(WARN_UNHANDLED_PKG_MIXED);
+                    System.out.println(WARN_UNREGISTERED_PKG_MIXED_ACTION);
                     break;
 
             }
@@ -151,26 +194,38 @@ public class AppState extends Thread implements ApiCodes {
             switch (collection.getPKGName()) {
 
                 case COLLECTION_UPDATE:
-                    pOnlineUsers.clear();
                     for (MSG iter : collection.getMessagesList()) {
                         if (iter.getAction().equals(REQ_INIT_CHAT)) {
-                            Chat updatedChat = Chat.instanceChat(iter);
-                            pClientCon.setChat(updatedChat);
+                            Chat c = ChatBuilder.newChat(iter);
+                            if (isNewChatReference(c.getReference())) {
+                                addChatRef(c.getReference());
+                            }
                         }
                         if (iter.getAction().equals(REQ_INIT_CON)) {
-                            pOnlineUsers.add(iter.getEmisor() + "_" + iter.getReceptor() + "_" + iter.getBody());
+                            String conRef = iter.getEmisor() + "_" + iter.getReceptor();
+                            String dateTime = "_" + iter.getBody();
+                            if (isNewConReference(conRef + dateTime)) {
+                                addConRef(conRef + dateTime);
+                            }
                         }
                     }
+
                     SwingUtils.executeOnSwingThread(() -> iUpdate.onUpdate());
 
                     break;
 
                 default:
-                    System.out.println(WARN_UNHANDLED_PKG_COLLECTION);
+                    System.out.println(WARN_UNREGISTERED_PKG_COLLECTION_ACTION);
                     break;
 
             }
 
+        }
+
+        @Override
+        public void unHandledPKG(PKG arg0) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'unHandledPKG'");
         }
 
     };
@@ -220,10 +275,10 @@ public class AppState extends Thread implements ApiCodes {
         System.err.println("LISTEN THREAD STOPPED");
     }
 
-    public interface IUpdate {
+    public interface IGUIListener {
         void onUpdate();
 
-        void onNewChat(Chat newChat);
+        void onNewChat(Chat chat);
 
         void onMessageReceived(MSG msg);
     }

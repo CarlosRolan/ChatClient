@@ -1,4 +1,4 @@
-package GUI.components;
+package GUI.view.components;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -10,9 +10,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import GUI.AppState;
+import GUI.GUI;
 
-public class TreeViewUsers extends JTree {
+public class MyTreeView extends JTree {
 
     public static String MSG_NOTIFICATION = "(!)";
     public final static char MSG_ALERT_NUM = MSG_NOTIFICATION.charAt(1);
@@ -22,10 +22,10 @@ public class TreeViewUsers extends JTree {
     private DefaultMutableTreeNode chatsNode = new DefaultMutableTreeNode("Chats");
     private DefaultMutableTreeNode usersNode = new DefaultMutableTreeNode("Users");
 
-    private List<String> conRefList;
-    private List<String> chatsRefList;
+    private final List<String> treeConList;
+    private final List<String> treeChatList;
 
-    private final ITreeViewListener eListener;
+    private final ITreeViewListener iTreeListener;
 
     private boolean hasNewMsg(TreePath conRef) {
         return hasNewMsg(conRef.getLastPathComponent().toString());
@@ -35,16 +35,16 @@ public class TreeViewUsers extends JTree {
         return conRef.endsWith(MSG_NOTIFICATION);
     }
 
-    public TreeViewUsers(ITreeViewListener eventsListener) {
+    public MyTreeView(ITreeViewListener eventsListener) {
         super(root);
-        eListener = eventsListener;
-
-        init();
+        iTreeListener = eventsListener;
+        treeConList = new ArrayList<>();
+        treeChatList = new ArrayList<>();
+        initMyTreeView();
     }
 
-    public void init() {
-        conRefList = new ArrayList<>();
-        chatsRefList = new ArrayList<>();
+    public void initMyTreeView() {
+
         root.add(chatsNode);
         root.add(usersNode);
 
@@ -55,13 +55,13 @@ public class TreeViewUsers extends JTree {
 
     }
 
-    private void refreshTreeView() {
+    public void refreshTreeView() {
         chatsNode.removeAllChildren();
         usersNode.removeAllChildren();
 
         int i = 0;
 
-        for (String chatRef : chatsRefList) {
+        for (String chatRef : treeChatList) {
             System.out.println("CHAT_REF[" + i + "]" + chatRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(chatRef, editable);
             chatsNode.add(node);
@@ -70,7 +70,7 @@ public class TreeViewUsers extends JTree {
 
         i = 0;
 
-        for (String conRef : conRefList) {
+        for (String conRef : treeConList) {
             System.out.println("CON_REF[" + i + "]" + conRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(conRef, editable);
             usersNode.add(node);
@@ -93,41 +93,70 @@ public class TreeViewUsers extends JTree {
 
     }
 
+    public void update() {
+        updateCon();
+        updateChats();
+        refreshTreeView();
+    }
+
     /**
      * 
      */
-    public void update() {
+    public void updateCon() {
         // Por lo que te dijo Mario
-        List<String> tempList = AppState.getInstance().getOnlineUsersList();
+        List<String> tempList = GUI.getInstance().getConRefList();
+
+        for (int i = 0; i < tempList.size(); i++) {
+            String conRef = null;
+
+            try {
+
+                String treeConItemData[] = tempList.get(i).split("_");
+                String conNick = treeConItemData[1];
+                String conLastTime = treeConItemData[2];
+
+                conRef = conNick + "(" + conLastTime + ")";
+
+                if (hasNewMsg(conRef)) {
+                    String alertedRef = conRef + MSG_NOTIFICATION;
+                    treeConList.set(i, alertedRef);
+                } else {
+                    treeConList.set(i, conRef);
+                }
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
+                treeConList.add(conRef);
+            }
+        }
+    }
+
+    public void updateChats() {
+        List<String> tempList = GUI.getInstance().getChatRefList();
 
         for (int i = 0; i < tempList.size(); i++) {
 
             try {
-                String conRef = conRefList.get(i);
+                String chatRef = tempList.get(i);
 
-                if (hasNewMsg(conRef)) {
-                    String alertedRef = tempList.get(i) + MSG_NOTIFICATION;
-                    conRefList.set(i, alertedRef);
-                } else {
-                    conRefList.set(i, tempList.get(i));
-                }
+                treeChatList.set(i, chatRef);
             } catch (IndexOutOfBoundsException e) {
-                conRefList.add(tempList.get(i));
+                e.printStackTrace();
+                treeChatList.add(tempList.get(i));
             }
-            refreshTreeView();
         }
+
     }
 
     private void hideAlertOnRef(String conId) {
         System.out.println("ID =" + conId);
 
-        for (int i = 0; i < conRefList.size(); i++) {
+        for (int i = 0; i < treeConList.size(); i++) {
 
-            String conRef = conRefList.get(i);
+            String conRef = treeConList.get(i);
 
             if (conRef.startsWith(conId) && conRef.endsWith(MSG_NOTIFICATION)) {
                 conRef = conRef.substring(0, conRef.length() - MSG_NOTIFICATION.length());
-                conRefList.set(i, conRef);
+                treeConList.set(i, conRef);
                 break;
             }
         }
@@ -135,12 +164,12 @@ public class TreeViewUsers extends JTree {
 
     public void addAlertOnRef(String conId) {
 
-        for (int i = 0; i < conRefList.size(); i++) {
+        for (int i = 0; i < treeConList.size(); i++) {
 
-            String conRef = conRefList.get(i);
+            String conRef = treeConList.get(i);
 
             if (conRef.startsWith(conId) && !conRef.endsWith(MSG_NOTIFICATION)) {
-                conRefList.set(i, conRef + MSG_NOTIFICATION);
+                treeConList.set(i, conRef + MSG_NOTIFICATION);
                 break;
             }
         }
@@ -159,7 +188,7 @@ public class TreeViewUsers extends JTree {
                     hideAlertOnRef(selPath.getLastPathComponent().toString());
                     refreshTreeView();
 
-                    eListener.onSingleRightClick(selRow, selPath);
+                    iTreeListener.onSingleRightClick(selRow, selPath);
 
                 } catch (NullPointerException e) {
                     System.out.println("NO PATH SELECTED");

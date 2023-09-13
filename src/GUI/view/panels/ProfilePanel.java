@@ -1,8 +1,9 @@
 package GUI.view.panels;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import GUI.components.ImageView;
+import GUI.view.components.ImageView;
 
 public class ProfilePanel extends JPanel {
 
@@ -29,33 +30,43 @@ public class ProfilePanel extends JPanel {
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 139,
+                                .addComponent(canvas1,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        139,
                                         javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107,
+                                .addPreferredGap(
+                                        javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+                                        107,
                                         Short.MAX_VALUE)
-                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 78,
+                                .addComponent(jLabel1,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        78,
                                         javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(66, 66, 66)));
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createParallelGroup(
+                                        javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()
                                                 .addContainerGap()
-                                                .addComponent(canvas1, javax.swing.GroupLayout.PREFERRED_SIZE, 136,
+                                                .addComponent(canvas1,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                        136,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(41, 41, 41)
-                                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 26,
+                                                .addComponent(jLabel1,
+                                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                        26,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addContainerGap(154, Short.MAX_VALUE)));
-
 
     }// </editor-fold>
 
     // Variables declaration - do not modify
     private ImageView canvas1;
-    private javax.swing.JLabel jLabel1;
+    private JLabel jLabel1;
     // End of variables declaration
 
 }

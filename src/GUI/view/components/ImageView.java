@@ -1,4 +1,4 @@
-package GUI.components;
+package GUI.view.components;
 
 import java.awt.Canvas;
 import java.awt.Graphics;

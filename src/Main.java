@@ -3,8 +3,8 @@ import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
-import CLI.CLIConnection;
-import GUI.AppState;
+import CLI.CLI;
+import GUI.GUI;
 import GUI.view.MainMenu;
 
 public class Main {
@@ -32,7 +32,7 @@ public class Main {
     }
 
     public static void graphicUI() {
-        AppState appGUI = AppState.getInstance();
+        GUI appGUI = GUI.getInstance();
         appGUI.start();
         EventQueue.invokeLater(new Runnable() {
             @Override
@@ -45,7 +45,7 @@ public class Main {
     }
 
     public static void CLUI() {
-        CLIConnection cc = CLIConnection.getInstance();
+        CLI cc = CLI.getInstance();
         cc.start();
 
         // We listen the server in a sub-Thread
@@ -62,10 +62,13 @@ public class Main {
         }
     }
 
+    /*
+     * MAIN EXECUTION
+     */
+
     public static void main(String[] args) {
 
         int op = selectUI();
-        
 
         if (op == JOptionPane.NO_OPTION) {
             CLUI();

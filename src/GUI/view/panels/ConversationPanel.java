@@ -12,11 +12,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 
 import com.chat.Chat;
-import com.comunication.MSG;
+import com.data.MSG;
 
-import GUI.AppState;
+import GUI.GUI;
+import GUI.SwingUtils;
 import controller.manager.FileManager;
 
 /**
@@ -24,6 +26,46 @@ import controller.manager.FileManager;
  * @author carlos
  */
 public class ConversationPanel extends javax.swing.JPanel {
+
+	private static ConversationPanel instance;
+
+	public static void showOnWindow(String id, String nick, IChatLListener listener) {
+		SwingUtils.executeOnSwingThread(new Runnable() {
+
+			@Override
+			public void run() {
+				JFrame conversation = new JFrame("Chat with " + nick);
+				instance = new ConversationPanel(id, nick, listener);
+				conversation.add(instance);
+				conversation.setResizable(false);
+				conversation.pack();
+				conversation.setVisible(true);
+			}
+		});
+	}
+
+	public static ConversationPanel newInstance(Chat chat, IChatLListener listener) {
+		return new ConversationPanel(chat, listener);
+	}
+
+	public static ConversationPanel newInstance(String id, String nick, IChatLListener listener) {
+		return new ConversationPanel(id, nick, listener);
+	}
+
+	public static void showOnWindow(Chat chat, IChatLListener listener) {
+		SwingUtils.executeOnSwingThread(new Runnable() {
+
+			@Override
+			public void run() {
+				JFrame conversation = new JFrame("Chat with " + chat.getTitle());
+				ConversationPanel p_chat_panel = new ConversationPanel(chat, listener);
+				conversation.add(p_chat_panel);
+				conversation.setResizable(false);
+				conversation.pack();
+				conversation.setVisible(true);
+			}
+		});
+	}
 
 	private boolean isChat = false;
 	private IChatLListener iChatListener;
@@ -35,17 +77,17 @@ public class ConversationPanel extends javax.swing.JPanel {
 	/**
 	 * Creates new form NewJPanel
 	 */
-	public ConversationPanel() {
+	private ConversationPanel() {
 		super();
 	}
 
-	public ConversationPanel(Chat chat, IChatLListener listener) {
+	private ConversationPanel(Chat chat, IChatLListener listener) {
 		isChat = true;
 		iChatListener = listener;
 		initComponents(chat.getTitle(), chat.getDescription());
 	}
 
-	public ConversationPanel(String convId, String convTitle, IChatLListener listener) {
+	private ConversationPanel(String convId, String convTitle, IChatLListener listener) {
 		isChat = false;
 		iChatListener = listener;
 		id = convId;
@@ -157,12 +199,12 @@ public class ConversationPanel extends javax.swing.JPanel {
 
 			String text = jTextPane1.getText();
 
-			AppState.getInstance().pClientCon.sendToSingleReq(id, title, text);
+			GUI.getInstance().pClientCon.sendToSingle(id, title, text);
 
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
 			LocalDateTime now = LocalDateTime.now();
 
-			iChatListener.onMessageSent(AppState.getInstance().pClientCon.getNick(), dtf.format(now), text,
+			iChatListener.onMessageSent(GUI.getInstance().pClientCon.getNick(), dtf.format(now), text,
 					msgListModel);
 
 		} catch (NullPointerException e) {
@@ -172,7 +214,24 @@ public class ConversationPanel extends javax.swing.JPanel {
 	}
 
 	public interface IChatLListener {
-		void onMessageRecieved(MSG msgReceived);
+		default void onMessageRecieved(MSG msgReceived) {
+			String id = msgReceived.getEmisor();
+			String nick = msgReceived.getParameter(0);
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+			LocalDateTime now = LocalDateTime.now();
+
+			String dateTime = dtf.format(now);
+			String text = msgReceived.getBody();
+
+			FileManager.getInstance().initHistoryFile(id, nick);
+
+			FileManager.getInstance().saveHistory(nick, dateTime, text);
+
+			String msgAdded = "[" + dateTime + "]" + nick + ":" + text;
+			instance.addLine(msgAdded);
+
+		}
 
 		void onMessageRead();
 

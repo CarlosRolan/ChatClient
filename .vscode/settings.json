@@ -1,14 +1,12 @@
 {
-    "java.project.sourcePaths": [
-        "src",
-        "lib"
-    ],
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
     "java.project.referencedLibraries": {
         "include": [
             "lib/**/*.jar"
         ],
-    },
-    "java.project.outputPath": "bin",
-    "java.autobuild.enabled": true,
-    "java.debug.settings.onBuildFailureProceed": true
+        "exclude": [
+            "lib/LocalChatAPI.jar"
+        ]
+    }
 }
