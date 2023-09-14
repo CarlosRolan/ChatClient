@@ -4,6 +4,7 @@
 .classpath
 .vscode
 .data
-.data/*/*.*
+data/**
 lib
 bin
+
