@@ -4,6 +4,6 @@
 .classpath
 .vscode
 .data
-.data/users/*.txt
+.data/users
 lib
 bin
