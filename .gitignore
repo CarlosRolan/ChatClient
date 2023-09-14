@@ -3,7 +3,7 @@
 .project
 .classpath
 .vscode
-.data
-.data/users
+.data/*
+.data/users/
 lib
 bin
