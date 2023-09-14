@@ -131,13 +131,11 @@ public class ConversationPanel extends javax.swing.JPanel {
 		jScrollPane2.setViewportView(jTextPane1);
 
 		jButton1.setText("SEND");
-		jButton1.setAlignmentX(0.5F);
 		jButton1.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				actionSend();
 			}
-
 		});
 
 		jLabel2.setIcon(new javax.swing.ImageIcon("/home/carlos/Desktop/rawIcons/btn_copy_to_clipboard.png")); // NOI18N
@@ -230,7 +228,6 @@ public class ConversationPanel extends javax.swing.JPanel {
 
 			String msgAdded = "[" + dateTime + "]" + nick + ":" + text;
 			instance.addLine(msgAdded);
-
 		}
 
 		void onMessageRead();

@@ -73,7 +73,14 @@ public class GUI extends Thread implements Codes {
     }
 
     public void addConRef(String conRef) {
-        pConRefList.add(conRef);
+        int i = pConRefList.indexOf(conRef);
+
+        try {
+            pConRefList.set(i, conRef);
+        } catch (IndexOutOfBoundsException e) {
+            pConRefList.add(conRef);
+        }
+
     }
 
     public void setOnUpdate(IGUIListener iUpdate2) {
@@ -92,7 +99,7 @@ public class GUI extends Thread implements Codes {
 
     private boolean isNewConReference(String conRef) {
         for (String iter : pConRefList) {
-            if (iter.equals(conRef)) {
+            if (iter.startsWith(conRef)) {
                 return false;
             }
         }
@@ -203,15 +210,15 @@ public class GUI extends Thread implements Codes {
                         }
                         if (iter.getAction().equals(REQ_INIT_CON)) {
                             String conRef = iter.getEmisor() + "_" + iter.getReceptor();
+                            // TODO WHAT TODO WITH TIME
                             String dateTime = "_" + iter.getBody();
-                            if (isNewConReference(conRef + dateTime)) {
-                                addConRef(conRef + dateTime);
+                            if (isNewConReference(conRef)) {
+                                addConRef(conRef);
                             }
                         }
                     }
 
                     SwingUtils.executeOnSwingThread(() -> iUpdate.onUpdate());
-
                     break;
 
                 default:
