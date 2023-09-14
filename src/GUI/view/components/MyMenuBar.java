@@ -79,7 +79,7 @@ public class MyMenuBar extends JMenuBar {
         if (chatTitle != null) {
             chatDesc = JOptionPane.showInputDialog("Chat's description");
             if (chatDesc != null) {
-                // ListPanel.showSelectorOnWindow(GUI.getInstance().getConRefList());
+                MyListPicker.showPicker(GUI.getInstance().getConRefList());
                 GUI.getInstance().pClientCon.newChat(chatTitle, chatDesc, GUI.getInstance().getChatRefList().size());
             }
         }
