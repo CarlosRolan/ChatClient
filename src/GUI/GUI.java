@@ -1,5 +1,6 @@
 package GUI;
 
+import java.awt.EventQueue;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import javax.swing.JOptionPane;
 
 import com.api.Codes;
 import com.chat.Chat;
-import com.chat.ChatBuilder;
+import com.chat.Member;
 import com.controller.handlers.IMSGHandler;
 import com.controller.handlers.IPKGHandler;
 import com.data.MSG;
@@ -54,42 +55,72 @@ public class GUI extends Thread implements Codes {
 
     public final ClientConnection pClientCon;
 
-    private List<String> pConRefList = new ArrayList<>();
-    private List<String> pChatRefList = new ArrayList<>();
+    private List<String> mConRefList = new ArrayList<>();
+    private List<String> mChatRefList = new ArrayList<>();
     private IGUIListener iUpdate;
 
     /* GETTERs */
     public List<String> getChatRefList() {
-        return pChatRefList;
+        return mChatRefList;
     }
 
     public List<String> getConRefList() {
-        return pConRefList;
+        return mConRefList;
     }
 
     /* SETTERs */
     public void addChatRef(String chatRef) {
-        pChatRefList.add(chatRef);
+        pClientCon.oneMoreChat();
+        mChatRefList.add(chatRef);
     }
 
     public void addConRef(String conRef) {
-        int i = pConRefList.indexOf(conRef);
+        int i = mConRefList.indexOf(conRef);
 
         try {
-            pConRefList.set(i, conRef);
+            mConRefList.set(i, conRef);
         } catch (IndexOutOfBoundsException e) {
-            pConRefList.add(conRef);
+            mConRefList.add(conRef);
         }
 
     }
 
-    public void setOnUpdate(IGUIListener iUpdate2) {
-        iUpdate = iUpdate2;
+    public boolean conHasUpdate(List<String> updatedConRefList) {
+        if (updatedConRefList.size() != mConRefList.size())
+            return true;
+
+        for (String iRef : mConRefList) {
+            for (String iRef2 : updatedConRefList) {
+                if (!iRef.startsWith(iRef2))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean chatsHasUpdate(List<String> updatedChatRefList) {
+
+        if (updatedChatRefList.size() != mChatRefList.size())
+            return true;
+
+        for (String iRef : mChatRefList) {
+            for (String iRef2 : updatedChatRefList) {
+                if (!iRef.startsWith(iRef2))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void setOnUpdate(IGUIListener listener) {
+        iUpdate = listener;
     }
 
     /* PRIVATE METHODs */
     private boolean isNewChatReference(String chatReference) {
-        for (String iter : pChatRefList) {
+        for (String iter : mChatRefList) {
             if (iter.equals(chatReference)) {
                 return false;
             }
@@ -98,7 +129,7 @@ public class GUI extends Thread implements Codes {
     }
 
     private boolean isNewConReference(String conRef) {
-        for (String iter : pConRefList) {
+        for (String iter : mConRefList) {
             if (iter.startsWith(conRef)) {
                 return false;
             }
@@ -114,6 +145,60 @@ public class GUI extends Thread implements Codes {
         FileManager.initInstance(pClientCon);
     }
 
+    private void setTheme() {
+        /* Set the Nimbus look and feel */
+        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
+        // (optional) ">
+        /*
+         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
+         * look and feel.
+         * For details see
+         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+    }
+
+    private String askForUserName() {
+        return JOptionPane.showInputDialog(null, "Your USER name");
+    }
+
+    public void launchApp() {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new MainMenu().setVisible(true);
+            }
+        });
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                pClientCon.listen();
+            } catch (ClassNotFoundException | IOException e) {
+                System.out.println("PROBLEM LISTENING SERVER");
+                break;
+            }
+        }
+        System.err.println("LISTEN THREAD STOPPED");
+    }
+
     /* IMPLEMENTATIONS */
     // MSG
     private final IMSGHandler IMSG_HANDLER = new IMSGHandler() {
@@ -121,18 +206,6 @@ public class GUI extends Thread implements Codes {
         @Override
         public void handleRequest(MSG request) {
             switch (request.getAction()) {
-
-                case REQ_INIT_CHAT:
-                    Chat chatInstance = ChatBuilder.newChat(request);
-
-                    if (isNewChatReference(chatInstance.getReference())) {
-                        addChatRef(chatInstance.getReference());
-                        SwingUtils.executeOnSwingThread(() -> iUpdate.onNewChat(chatInstance));
-                    } else {
-                        // TODO UNREACHEABLE CODE CHAT IS NEVER GONNA BE THE SAME
-                        JOptionPane.showMessageDialog(null, "CHAT ALREADY CREATED");
-                    }
-                    break;
 
                 default:
                     System.out.println(WARN_UNREGISTERED_MSG_REQUEST_ACTION);
@@ -146,7 +219,7 @@ public class GUI extends Thread implements Codes {
 
             switch (message.getAction()) {
                 case MSG_TO_SINGLE:
-                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message));
+                    // SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message));
                     break;
                 default:
                     System.out.println(WARN_UNREGISTERED_MSG_MESSAGE_ACTION);
@@ -191,7 +264,6 @@ public class GUI extends Thread implements Codes {
                 default:
                     System.out.println(WARN_UNREGISTERED_PKG_MIXED_ACTION);
                     break;
-
             }
         }
 
@@ -201,30 +273,54 @@ public class GUI extends Thread implements Codes {
             switch (collection.getPKGName()) {
 
                 case COLLECTION_UPDATE:
-                    for (MSG iter : collection.getMessagesList()) {
-                        if (iter.getAction().equals(REQ_INIT_CHAT)) {
-                            Chat c = ChatBuilder.newChat(iter);
-                            if (isNewChatReference(c.getReference())) {
-                                addChatRef(c.getReference());
-                            }
+
+                    List<String> updatedConRefList = new ArrayList<>();
+                    List<String> updatedChatRefList = new ArrayList<>();
+
+                    for (MSG iMsg : collection.getMessagesList()) {
+
+                        if (iMsg.getAction().equals(REQ_INIT_CON)) {
+                            String conId = iMsg.getEmisor();
+                            String conNick = iMsg.getReceptor();
+
+                            String iConRef = conId + Member.SEPARATOR + conNick;
+                            updatedConRefList.add(iConRef);
                         }
-                        if (iter.getAction().equals(REQ_INIT_CON)) {
-                            String conRef = iter.getEmisor() + "_" + iter.getReceptor();
-                            // TODO WHAT TODO WITH TIME
-                            String dateTime = "_" + iter.getBody();
-                            if (isNewConReference(conRef)) {
-                                addConRef(conRef);
-                            }
+
+                        if (iMsg.getAction().equals(REQ_INIT_CHAT)) {
+                            Chat iChat = Chat.instanceChat(iMsg);
+                            updatedChatRefList.add(iChat.getReference());
                         }
                     }
 
-                    SwingUtils.executeOnSwingThread(() -> iUpdate.onUpdate());
+                    if (conHasUpdate(updatedConRefList)) {
+                        System.out.println(">>UPD USERS<<<");
+                        mConRefList = updatedConRefList;
+                        SwingUtils.executeOnSwingThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                iUpdate.updateUsers();
+                            }
+                        });
+                    }
+
+                    if (chatsHasUpdate(updatedChatRefList)) {
+                        System.out.println(">>UPD CHATS<<<");
+                        mChatRefList = updatedChatRefList;
+                        SwingUtils.executeOnSwingThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                iUpdate.updateChats();
+                            }
+                        });
+
+                    }
+
                     break;
 
                 default:
                     System.out.println(WARN_UNREGISTERED_PKG_COLLECTION_ACTION);
                     break;
-
             }
 
         }
@@ -237,57 +333,11 @@ public class GUI extends Thread implements Codes {
 
     };
 
-    private void setTheme() {
-        /* Set the Nimbus look and feel */
-        // <editor-fold defaultstate="collapsed" desc=" Look and feel setting code
-        // (optional) ">
-        /*
-         * If Nimbus (introduced in Java SE 6) is not available, stay with the default
-         * look and feel.
-         * For details see
-         * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-    }
-
-    public String askForUserName() {
-        return JOptionPane.showInputDialog(null, "Your USER name");
-    }
-
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                pClientCon.listen();
-            } catch (ClassNotFoundException | IOException e) {
-                System.out.println("PROBLEM LISTENING SERVER");
-                break;
-            }
-        }
-        System.err.println("LISTEN THREAD STOPPED");
-    }
-
     public interface IGUIListener {
-        void onUpdate();
 
-        void onNewChat(Chat chat);
+        void updateUsers();
 
-        void onMessageReceived(MSG msg);
+        void updateChats();
     }
 
 }

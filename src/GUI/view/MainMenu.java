@@ -1,20 +1,22 @@
 package GUI.view;
 
-import javax.swing.DefaultListModel;
+import java.lang.ref.WeakReference;
+import java.util.List;
+
+import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
-import com.chat.Chat;
-import com.data.MSG;
+import com.chat.Member;
 
+import GUI.GUI;
 import GUI.GUI.IGUIListener;
-import GUI.SwingUtils;
 import GUI.view.components.MyMenuBar;
+import GUI.view.components.MyMenuBar.IClickListener;
 import GUI.view.components.MyTreeView;
 import GUI.view.components.MyTreeView.ITreeViewListener;
-import GUI.view.panels.ConversationPanel;
-import GUI.view.panels.ConversationPanel.IChatLListener;
-import GUI.view.panels.ListPanel;
-import controller.manager.FileManager;
+import GUI.view.components.MyUserPicker;
+import GUI.view.panels.PChat;
+import GUI.view.panels.PTabbs;
 
 /**
  *
@@ -22,16 +24,15 @@ import controller.manager.FileManager;
  */
 public class MainMenu extends javax.swing.JFrame {
 
-	private final String TAB_1 = "CHATS";
-	private final String TAB_2 = "CONTACTOS";
-	private final String TAB_3 = "X";
+	private WeakReference<MainMenu> mWeakReference;
 
 	/**
 	 * Creates new form ChatClient
 	 */
 	public MainMenu() {
+		mWeakReference = new WeakReference<MainMenu>(this);
 		initComponents();
-		GUI.GUI.getInstance().setOnUpdate(iUpdateListener);
+		GUI.getInstance().setOnUpdate(iUpdateListener);
 	}
 
 	/**
@@ -45,40 +46,13 @@ public class MainMenu extends javax.swing.JFrame {
 
 		scrollView = new javax.swing.JScrollPane();
 		tree_users = new MyTreeView(iTreeViewListener);
-		tabbedPane = new javax.swing.JTabbedPane();
+		tabbedPane = new PTabbs();
 
-		tab2 = new javax.swing.JPanel();
-		tab3 = new javax.swing.JPanel();
-		tab1 = new ListPanel();
-		menuBar = new MyMenuBar();
+		menuBar = new MyMenuBar(iMenuListener);
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
 		scrollView.setViewportView(tree_users);
-
-		tabbedPane.addTab(TAB_1, tab1);
-
-		javax.swing.GroupLayout tab2Layout = new javax.swing.GroupLayout(tab2);
-		tab2.setLayout(tab2Layout);
-		tab2Layout.setHorizontalGroup(
-				tab2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGap(0, 337, Short.MAX_VALUE));
-		tab2Layout.setVerticalGroup(
-				tab2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGap(0, 381, Short.MAX_VALUE));
-
-		tabbedPane.addTab(TAB_2, tab2);
-
-		javax.swing.GroupLayout tab3Layout = new javax.swing.GroupLayout(tab3);
-		tab3.setLayout(tab3Layout);
-		tab3Layout.setHorizontalGroup(
-				tab3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGap(0, 337, Short.MAX_VALUE));
-		tab3Layout.setVerticalGroup(
-				tab3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGap(0, 381, Short.MAX_VALUE));
-
-		tabbedPane.addTab(TAB_3, tab3);
 
 		setJMenuBar(menuBar);
 
@@ -104,16 +78,15 @@ public class MainMenu extends javax.swing.JFrame {
 
 		scrollView.getAccessibleContext().setAccessibleName("panel_list");
 
+		scrollView.setVisible(false);
+
 		pack();
 	}// </editor-fold>
 
 	// Variables declaration - do not modify
 	private MyMenuBar menuBar;
 	private javax.swing.JScrollPane scrollView;
-	private ListPanel tab1;
-	private javax.swing.JPanel tab2;
-	private javax.swing.JPanel tab3;
-	private javax.swing.JTabbedPane tabbedPane;
+	private PTabbs tabbedPane;
 	private MyTreeView tree_users;
 	// End of variables declaration
 
@@ -123,10 +96,9 @@ public class MainMenu extends javax.swing.JFrame {
 		public void onSingleRightClick(int selRow, TreePath selPath) {
 
 			String userPathTag = selPath.getPathComponent(1).toString();
-			String[] receptorInfo = selPath.getLastPathComponent().toString().split("_");
+			String[] receptorInfo = selPath.getLastPathComponent().toString().split(Member.SEPARATOR);
 
 			if ("Users".equals(userPathTag)) {
-
 				for (int i = 0; i < receptorInfo.length; i++) {
 					System.out.println("INFO [" + i + "]" + receptorInfo[i]);
 				}
@@ -136,58 +108,76 @@ public class MainMenu extends javax.swing.JFrame {
 			String receptorNick = receptorInfo[1];
 
 			// showOnWindow
-			ConversationPanel.showOnWindow(receptorId, receptorNick, iChatListener);
+			PChat.showOnWindow(receptorId, receptorNick);
 		}
 
 	};
 	private final IGUIListener iUpdateListener = new IGUIListener() {
 
 		@Override
-		public void onUpdate() {
-			tree_users.update();
+		public void updateUsers() {
+			// por lo que dijo mario
+			List<String> temp = GUI.getInstance().getConRefList();
+			tabbedPane.refreshUsersTab(temp);
 		}
 
 		@Override
-		public void onNewChat(Chat chat) {
-			tree_users.updateChats();
-			tree_users.refreshTreeView();
-			tab1.addChatItem(chat);
+		public void updateChats() {
+			// por lo que dijo mario
+			List<String> temp = GUI.getInstance().getChatRefList();
+			tabbedPane.refresChatsTab(temp);
 		}
 
-		@Override
-		public void onMessageReceived(MSG msg) {
-			tree_users.addAlertOnRef(msg.getEmisor());
-			iChatListener.onMessageRecieved(msg);
-		}
 	};
 
-	private final IChatLListener iChatListener = new IChatLListener() {
+	private final IClickListener iMenuListener = new IClickListener() {
 
 		@Override
-		public void onMessageRead() {
-			// TODO double check
+		public void enableTreeView() {
+			scrollView.setVisible(true);
+			tabbedPane.setVisible(false);
 		}
 
 		@Override
-		public void onMessageSent(String nick, String dateTime, String text, DefaultListModel<String> listModel) {
+		public void enableTabView() {
+			scrollView.setVisible(false);
+			tabbedPane.setVisible(true);
+		}
 
-			FileManager.getInstance().saveHistory(nick, dateTime, text);
-			SwingUtils.executeOnSwingThread(new Runnable() {
+		@Override
+		public void onItemClick1() {
+			int addingMembers = 0;
+			String newChatTitle = JOptionPane.showInputDialog("Title of the chat");
+			String newChatDesc = null;
 
-				@Override
-				public void run() {
-					String msgAdded = "[" + dateTime + "]" + nick + ":" + text;
-					listModel.addElement(msgAdded);
+			if (newChatTitle != null) {
+				newChatDesc = JOptionPane.showInputDialog("Chat's description");
+				if (newChatDesc != null) {
+					addingMembers = JOptionPane.showConfirmDialog(null, "Adding new MEMBERs");
+					switch (addingMembers) {
+						case JOptionPane.CANCEL_OPTION:
+							break;
+						case JOptionPane.OK_OPTION:
+							// Por lo que diojo MArio
+							List<String> tempConRefs = GUI.getInstance().getConRefList();
+
+							MyUserPicker picker = new MyUserPicker(mWeakReference.get(), true, tempConRefs,
+									newChatTitle,
+									newChatDesc);
+							picker.setVisible(true);
+							break;
+						case JOptionPane.NO_OPTION:
+							GUI.getInstance().pClientCon.createNewChat(newChatTitle, newChatDesc, null);
+							break;
+
+						case JOptionPane.CLOSED_OPTION:
+							break;
+						default:
+							break;
+					}
 				}
-			});
-
+			}
 		}
-
-		@Override
-		public void onMessageWritten() {
-
-		}
-
 	};
 
 }

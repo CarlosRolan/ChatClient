@@ -11,8 +11,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import GUI.GUI;
-
 public class MyTreeView extends JTree {
 
     public static String MSG_NOTIFICATION = "(!)";
@@ -23,8 +21,8 @@ public class MyTreeView extends JTree {
     private DefaultMutableTreeNode chatsNode = new DefaultMutableTreeNode("Chats");
     private DefaultMutableTreeNode usersNode = new DefaultMutableTreeNode("Users");
 
-    private final List<String> treeConList;
-    private final List<String> treeChatList;
+    private final List<String> mTreeConList;
+    private final List<String> mTreeChatList;
 
     private final ITreeViewListener iTreeListener;
 
@@ -39,8 +37,8 @@ public class MyTreeView extends JTree {
     public MyTreeView(ITreeViewListener eventsListener) {
         super(root);
         iTreeListener = eventsListener;
-        treeConList = new ArrayList<>();
-        treeChatList = new ArrayList<>();
+        mTreeConList = new ArrayList<>();
+        mTreeChatList = new ArrayList<>();
         initMyTreeView();
     }
 
@@ -62,7 +60,7 @@ public class MyTreeView extends JTree {
 
         int i = 0;
 
-        for (String chatRef : treeChatList) {
+        for (String chatRef : mTreeChatList) {
             System.out.println("CHAT_REF[" + i + "]" + chatRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(chatRef, editable);
             chatsNode.add(node);
@@ -71,7 +69,7 @@ public class MyTreeView extends JTree {
 
         i = 0;
 
-        for (String conRef : treeConList) {
+        for (String conRef : mTreeConList) {
             System.out.println("CON_REF[" + i + "]" + conRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(conRef, editable);
             usersNode.add(node);
@@ -94,46 +92,39 @@ public class MyTreeView extends JTree {
 
     }
 
-    public void update() {
-        updateCon();
-        updateChats();
+    public void update(List<String> updatedConRefsList, List<String> updatedChatRefs) {
+        updateCon(updatedConRefsList);
+        updateChats(updatedChatRefs);
         refreshTreeView();
     }
 
-    /**
-     * 
-     */
-    public void updateCon() {
-        // Por lo que te dijo Mario
-        List<String> tempList = GUI.getInstance().getConRefList();
-
-        for (int i = 0; i < tempList.size(); i++) {
+    public void updateCon(List<String> updated) {
+        for (int i = 0; i < updated.size(); i++) {
             String conRef = null;
             try {
-                conRef = tempList.get(i);
+                conRef = updated.get(i);
                 if (hasNewMsg(conRef)) {
                     String alertedRef = conRef + MSG_NOTIFICATION;
-                    treeConList.set(i, alertedRef);
+                    mTreeConList.set(i, alertedRef);
                 } else {
-                    treeConList.set(i, conRef);
+                    mTreeConList.set(i, conRef);
                 }
             } catch (IndexOutOfBoundsException e) {
                 System.out.println("New user connected");
-                treeConList.add(conRef);
+                mTreeConList.add(conRef);
             }
         }
     }
 
-    public void updateChats() {
-        List<String> tempList = GUI.getInstance().getChatRefList();
+    public void updateChats(List<String> updated) {
 
-        for (int i = 0; i < tempList.size(); i++) {
+        for (int i = 0; i < updated.size(); i++) {
             try {
-                String chatRef = tempList.get(i);
-                treeChatList.set(i, chatRef);
+                String chatRef = updated.get(i);
+                mTreeChatList.set(i, chatRef);
             } catch (IndexOutOfBoundsException e) {
                 JOptionPane.showMessageDialog(this, "New chat added");
-                treeChatList.add(tempList.get(i));
+                mTreeChatList.add(updated.get(i));
             }
         }
     }
@@ -142,11 +133,11 @@ public class MyTreeView extends JTree {
 
         System.out.println("ID =" + conId);
 
-        for (int i = 0; i < treeConList.size(); i++) {
-            String conRef = treeConList.get(i);
+        for (int i = 0; i < mTreeConList.size(); i++) {
+            String conRef = mTreeConList.get(i);
             if (conRef.startsWith(conId) && conRef.endsWith(MSG_NOTIFICATION)) {
                 conRef = conRef.substring(0, conRef.length() - MSG_NOTIFICATION.length());
-                treeConList.set(i, conRef);
+                mTreeConList.set(i, conRef);
                 break;
             }
         }
@@ -154,10 +145,10 @@ public class MyTreeView extends JTree {
 
     public void addAlertOnRef(String conId) {
 
-        for (int i = 0; i < treeConList.size(); i++) {
-            String conRef = treeConList.get(i);
+        for (int i = 0; i < mTreeConList.size(); i++) {
+            String conRef = mTreeConList.get(i);
             if (conRef.startsWith(conId) && !conRef.endsWith(MSG_NOTIFICATION)) {
-                treeConList.set(i, conRef + MSG_NOTIFICATION);
+                mTreeConList.set(i, conRef + MSG_NOTIFICATION);
                 break;
             }
         }

@@ -1,11 +1,9 @@
-import java.awt.EventQueue;
 import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
 import CLI.CLI;
 import GUI.GUI;
-import GUI.view.MainMenu;
 
 public class Main {
 
@@ -31,20 +29,16 @@ public class Main {
                 options[1]);
     }
 
-    public static void graphicUI() {
+    private static void launchGraphicUI() {
         GUI appGUI = GUI.getInstance();
         appGUI.start();
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new MainMenu().setVisible(true);
-            }
-        });
+
+        appGUI.launchApp();
 
         sleepInMs(100);
     }
 
-    public static void CLUI() {
+    private static void launchCLI() {
         CLI cc = CLI.getInstance();
         cc.start();
 
@@ -71,9 +65,9 @@ public class Main {
         int op = selectUI();
 
         if (op == JOptionPane.NO_OPTION) {
-            CLUI();
+            launchCLI();
         } else {
-            graphicUI();
+            launchGraphicUI();
         }
 
     }

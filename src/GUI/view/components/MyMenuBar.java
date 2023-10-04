@@ -2,11 +2,9 @@ package GUI.view.components;
 
 import java.awt.event.MouseAdapter;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-
-import GUI.GUI;
 
 public class MyMenuBar extends JMenuBar {
 
@@ -15,10 +13,17 @@ public class MyMenuBar extends JMenuBar {
     private final String ITEM_1 = "New Chat..";
 
     private final String ITEM_2 = "Settings";
+    private final String ITEM_2_0 = "Tree View";
+    private final String ITEM_2_1 = "Tab View";
+
+    private final IClickListener iListener;
+
+    private ButtonGroup btnGroup = new ButtonGroup();
 
     public final String[] MENU_ITEMS = { ITEM_0, ITEM_1, ITEM_2 };
 
-    public MyMenuBar() {
+    public MyMenuBar(IClickListener listener) {
+        iListener = listener;
         initComponents();
     }
 
@@ -46,7 +51,7 @@ public class MyMenuBar extends JMenuBar {
                 case 1:
                     mAdapter = new java.awt.event.MouseAdapter() {
                         public void mouseClicked(java.awt.event.MouseEvent evt) {
-                            iAction1();
+                            iListener.onItemClick1();
                         }
                     };
                     break;
@@ -73,20 +78,18 @@ public class MyMenuBar extends JMenuBar {
     }
 
     private void iAction1() {
-        String chatTitle = JOptionPane.showInputDialog("Title of the chat");
-        String chatDesc = null;
-
-        if (chatTitle != null) {
-            chatDesc = JOptionPane.showInputDialog("Chat's description");
-            if (chatDesc != null) {
-                MyListPicker.showPicker(GUI.getInstance().getConRefList());
-                GUI.getInstance().pClientCon.newChat(chatTitle, chatDesc, GUI.getInstance().getChatRefList().size());
-            }
-        }
+      
     }
 
     private void iAction2() {
 
+    }
+
+    public interface IClickListener {
+        void onItemClick1();
+        void enableTreeView();
+
+        void enableTabView();
     }
 
 }

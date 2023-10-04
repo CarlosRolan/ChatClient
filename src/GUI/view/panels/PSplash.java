@@ -4,12 +4,12 @@ package GUI.view.panels;
  *
  * @author carlos
  */
-public class SplashPanel extends javax.swing.JPanel {
+public class PSplash extends javax.swing.JPanel {
 
     /**
      * Creates new form NewJPanel
      */
-    public SplashPanel() {
+    public PSplash() {
         initComponents();
     }
 

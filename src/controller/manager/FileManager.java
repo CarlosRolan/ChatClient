@@ -36,27 +36,27 @@ public class FileManager {
     private final String CONFIG_FILE = "config" + TXT_EXT;
     private final String HISTORY_FILE = "history" + TXT_EXT;
 
-    private File chatsDir;
-    private File usersDir;
-    private File historyFile;
+    private File mChatsDir;
+    private File mUsersDir;
+    private File mHistoryFile;
 
     private FileManager(Connection userCon) {
         initPartenDirs(userCon.getConId(), userCon.getNick());
     }
 
     private void initPartenDirs(String userId, String userNick) {
-        chatsDir = new File(CHATS_DIR);
-        usersDir = new File(USERS_DIR);
+        mChatsDir = new File(CHATS_DIR);
+        mUsersDir = new File(USERS_DIR);
 
-        chatsDir.mkdirs();
-        usersDir.mkdirs();
+        mChatsDir.mkdirs();
+        mUsersDir.mkdirs();
 
     }
 
     public void initHistoryFile(String id, String nick) {
-        historyFile = new File(usersDir.getAbsolutePath() + "/" + nick + "_" + HISTORY_FILE);
+        mHistoryFile = new File(mUsersDir.getAbsolutePath() + "/" + nick + "_" + HISTORY_FILE);
         try {
-            historyFile.createNewFile();
+            mHistoryFile.createNewFile();
         } catch (IOException e) {
 
         }
@@ -66,7 +66,7 @@ public class FileManager {
 
         FileWriter fw = null;
         try {
-            fw = new FileWriter(historyFile, Charset.defaultCharset(), true);
+            fw = new FileWriter(mHistoryFile, Charset.defaultCharset(), true);
 
             fw.append("[" + timeData + "]" + nick + ":" + newLine + "\n");
             fw.flush();
@@ -83,7 +83,7 @@ public class FileManager {
         ArrayList<String> history = new ArrayList<>();
         Scanner myReader = null;
         try {
-            myReader = new Scanner(historyFile);
+            myReader = new Scanner(mHistoryFile);
         } catch (FileNotFoundException e) {
             System.out.println("PROBLEM LOAD CHAT RAW");
         }

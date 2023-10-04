@@ -5,9 +5,9 @@ import javax.swing.JPanel;
 
 import GUI.view.components.ImageView;
 
-public class ProfilePanel extends JPanel {
+public class PProfile extends JPanel {
 
-    public ProfilePanel() {
+    public PProfile() {
         initComponents();
     }
 

@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 import com.api.Codes;
 import com.chat.Chat;
-import com.chat.ChatBuilder;
 import com.controller.Connection;
 import com.controller.handlers.IMSGHandler;
 import com.controller.handlers.IPKGHandler;
@@ -44,7 +43,6 @@ public class CLI extends Thread implements Codes, CLIActions {
     private String pSingleID = "0";
     private String pSincleNick = null;
     private Chat pCurrentChat = null;
-    private int numChats = 0;
 
     /* GETTERS */
     public Connection getConnection() {
@@ -102,7 +100,8 @@ public class CLI extends Thread implements Codes, CLIActions {
                 break;
             // Start Single-Chat (1v1)
             case OP_2:
-                msgOut = ClientAPI.newRequest().askForSingleReq(pClientCon.getConId(), selectUser(), pClientCon.getNick());
+                msgOut = ClientAPI.newRequest().askForSingleReq(pClientCon.getConId(), selectUser(),
+                        pClientCon.getNick());
                 break;
             // Start Chats Menu
             case OP_3:
@@ -154,7 +153,7 @@ public class CLI extends Thread implements Codes, CLIActions {
             // Enter Chat
             case OP_1:
                 pClientCon.write(
-                        ClientAPI.newRequest().selectChatReq(selectChatById(), pClientCon.getConId()));
+                        ClientAPI.newRequest().selectChatReq(selectChatById(), pClientCon.getConId(), pClientCon.getNumChats()));
                 break;
             // Create Chat
             case OP_2:
@@ -163,7 +162,7 @@ public class CLI extends Thread implements Codes, CLIActions {
                 String chatTitle = sc.nextLine();
                 System.out.println(IN_SET_CHAT_DESC);
                 String chatDesc = sc.nextLine();
-                pClientCon.newChat(chatTitle, chatDesc, numChats);
+                pClientCon.createNewChat(chatTitle, chatDesc, null);
                 break;
             // Delete Chat
             case OP_3:
@@ -320,8 +319,8 @@ public class CLI extends Thread implements Codes, CLIActions {
 
                 // TODO make difeerent when created new chat and wehn added
                 case REQ_INIT_CHAT:
-                    numChats++;
-                    pCurrentChat = ChatBuilder.newChat(respondReq);
+                    pClientCon.oneMoreChat();
+                    pCurrentChat = Chat.instanceChat(respondReq);
                     ConsoleState.get().change(ConsoleState.CHAT);
                     FileManager.getInstance().saveChatRaw(pCurrentChat);
                     if (pCurrentChat == null)
