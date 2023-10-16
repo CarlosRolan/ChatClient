@@ -3,26 +3,30 @@ package GUI.view;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
 import com.chat.Member;
+import com.data.MSG;
 
 import GUI.GUI;
 import GUI.GUI.IGUIListener;
-import GUI.view.components.MyMenuBar;
-import GUI.view.components.MyMenuBar.IClickListener;
+import GUI.view.components.MainMenuBar;
+import GUI.view.components.MainMenuBar.IMenuBarListener;
 import GUI.view.components.MyTreeView;
 import GUI.view.components.MyTreeView.ITreeViewListener;
 import GUI.view.components.MyUserPicker;
-import GUI.view.panels.PChat;
+import GUI.view.item.MyItemView.IMyItemViewListener;
+import GUI.view.panels.PConv;
+import GUI.view.panels.PConv.IConvListener;
 import GUI.view.panels.PTabbs;
 
 /**
  *
  * @author carlos
  */
-public class MainMenu extends javax.swing.JFrame {
+public class MainMenu extends JFrame {
 
 	private WeakReference<MainMenu> mWeakReference;
 
@@ -44,11 +48,13 @@ public class MainMenu extends javax.swing.JFrame {
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
 	private void initComponents() {
 
+		setTitle(GUI.getInstance().pClientCon.getNick());
+
 		scrollView = new javax.swing.JScrollPane();
 		tree_users = new MyTreeView(iTreeViewListener);
 		tabbedPane = new PTabbs();
 
-		menuBar = new MyMenuBar(iMenuListener);
+		menuBar = new MainMenuBar(iMenuListener);
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -84,11 +90,79 @@ public class MainMenu extends javax.swing.JFrame {
 	}// </editor-fold>
 
 	// Variables declaration - do not modify
-	private MyMenuBar menuBar;
+	private MainMenuBar menuBar;
 	private javax.swing.JScrollPane scrollView;
 	private PTabbs tabbedPane;
 	private MyTreeView tree_users;
 	// End of variables declaration
+
+	/* IMPLEMENTATIONs */
+
+	private final IMyItemViewListener iMyItemViewListener = new IMyItemViewListener() {
+
+		@Override
+		public void onItemRightClick(String itemId, String itemTitle, String itemSubtitle, boolean isChat) {
+
+			boolean isNewInstance = true;
+
+			for (PConv iPconv : GUI.getInstance().convListRef) {
+				if (iPconv.getConvId().equals(itemId)) {
+					isNewInstance = false;
+					if (iPconv.isVisible()) {
+						iPconv.requestFocus();
+					} else {
+						PConv.showOnWindow(iPconv);
+					}
+					break;
+				}
+			}
+
+			if (isNewInstance) {
+				PConv instance = PConv.createInstance(itemId, itemTitle, itemSubtitle, iConvListener, isChat);
+				GUI.getInstance().addConvPanelRef(instance);
+				PConv.showOnWindow(instance);
+			}
+
+		}
+	};
+
+	private final IConvListener iConvListener = new IConvListener() {
+
+		@Override
+		public void onMsgSent(String convId, String convTitle, String convSubTitle, String line, boolean isChat) {
+			if (isChat) {
+				String chatId = convId;
+				String emisroId = GUI.getInstance().pClientCon.getConId();
+				String emisorNick = GUI.getInstance().pClientCon.getNick();
+				GUI.getInstance().pClientCon.sendMsgToChat(chatId, emisroId, emisorNick, line);
+			} else {
+				GUI.getInstance().pClientCon.sendToSingle(convId, convTitle, line);
+			}
+		}
+
+		@Override
+		public void onMsgRecieved(MSG msgRecieved, boolean isChat) {
+			/*
+			 * toChat.setAction(MSG_FROM_CHAT);
+			 * toChat.setEmisor(emisorId);
+			 * toChat.setReceptor(currentChat.getChatId());
+			 * toChat.setParameter(0, emisorNick);
+			 * toChat.setBody(text);
+			 */
+
+			String convId = msgRecieved.getReceptor();
+			String line = msgRecieved.getBody();
+
+			for (PConv iter : GUI.getInstance().convListRef) {
+				if (iter.getConvId().equals(convId)) {
+					iter.addLine(line);
+					break;
+				}
+			}
+
+		}
+
+	};
 
 	private final ITreeViewListener iTreeViewListener = new ITreeViewListener() {
 
@@ -98,19 +172,18 @@ public class MainMenu extends javax.swing.JFrame {
 			String userPathTag = selPath.getPathComponent(1).toString();
 			String[] receptorInfo = selPath.getLastPathComponent().toString().split(Member.SEPARATOR);
 
+			String receptorId = receptorInfo[0];
+			String receptorNick = receptorInfo[1];
+
 			if ("Users".equals(userPathTag)) {
 				for (int i = 0; i < receptorInfo.length; i++) {
 					System.out.println("INFO [" + i + "]" + receptorInfo[i]);
 				}
+
+			} else {
+
 			}
-
-			String receptorId = receptorInfo[0];
-			String receptorNick = receptorInfo[1];
-
-			// showOnWindow
-			PChat.showOnWindow(receptorId, receptorNick);
 		}
-
 	};
 	private final IGUIListener iUpdateListener = new IGUIListener() {
 
@@ -118,19 +191,25 @@ public class MainMenu extends javax.swing.JFrame {
 		public void updateUsers() {
 			// por lo que dijo mario
 			List<String> temp = GUI.getInstance().getConRefList();
-			tabbedPane.refreshUsersTab(temp);
+			tabbedPane.refreshUsersTab(temp, iMyItemViewListener);
 		}
 
 		@Override
 		public void updateChats() {
 			// por lo que dijo mario
 			List<String> temp = GUI.getInstance().getChatRefList();
-			tabbedPane.refresChatsTab(temp);
+			tabbedPane.refresChatsTab(temp, iMyItemViewListener);
+		}
+
+		@Override
+		public void onMessageReceived(MSG msgReceived, boolean isChat) {
+			tabbedPane.addNotificationOnChatsTab();
+			iConvListener.onMsgRecieved(msgReceived, isChat);
 		}
 
 	};
 
-	private final IClickListener iMenuListener = new IClickListener() {
+	private final IMenuBarListener iMenuListener = new IMenuBarListener() {
 
 		@Override
 		public void enableTreeView() {
@@ -150,8 +229,11 @@ public class MainMenu extends javax.swing.JFrame {
 			String newChatTitle = JOptionPane.showInputDialog("Title of the chat");
 			String newChatDesc = null;
 
-			if (newChatTitle != null) {
+			if (!"".equals(newChatTitle) && newChatTitle != null) {
 				newChatDesc = JOptionPane.showInputDialog("Chat's description");
+				if ("".equals(newChatDesc)) {
+					newChatDesc = "Empty description";
+				}
 				if (newChatDesc != null) {
 					addingMembers = JOptionPane.showConfirmDialog(null, "Adding new MEMBERs");
 					switch (addingMembers) {
@@ -162,8 +244,7 @@ public class MainMenu extends javax.swing.JFrame {
 							List<String> tempConRefs = GUI.getInstance().getConRefList();
 
 							MyUserPicker picker = new MyUserPicker(mWeakReference.get(), true, tempConRefs,
-									newChatTitle,
-									newChatDesc);
+									newChatTitle, newChatDesc);
 							picker.setVisible(true);
 							break;
 						case JOptionPane.NO_OPTION:

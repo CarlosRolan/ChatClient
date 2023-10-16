@@ -153,7 +153,8 @@ public class CLI extends Thread implements Codes, CLIActions {
             // Enter Chat
             case OP_1:
                 pClientCon.write(
-                        ClientAPI.newRequest().selectChatReq(selectChatById(), pClientCon.getConId(), pClientCon.getNumChats()));
+                        ClientAPI.newRequest().selectChatReq(selectChatById(), pClientCon.getConId(),
+                                pClientCon.getNumChats()));
                 break;
             // Create Chat
             case OP_2:
@@ -188,7 +189,7 @@ public class CLI extends Thread implements Codes, CLIActions {
         switch (sc.nextLine()) {
             // Send MSG to Chat
             case OP_1:
-                pClientCon.sendToChat(pCurrentChat, sc.nextLine());
+                //pClientCon.sendToChat(pCurrentChat, sc.nextLine());
                 break;
             // Manage Chat
             case OP_2:
@@ -339,11 +340,11 @@ public class CLI extends Thread implements Codes, CLIActions {
             changeConsoleColor(ConsoleColor.GREEN);
             switch (respondMSG.getAction()) {
 
-                case MSG_TO_SINGLE:
+                case MSG_FROM_SINGLE:
                     System.out.println("\t\t[" + getCurrentTime() + "]" + pSincleNick + ": " + respondMSG.getBody());
                     break;
 
-                case MSG_TO_CHAT:
+                case MSG_FROM_CHAT:
                     if (ConsoleState.get() == ConsoleState.CHAT) {
                         System.out.println("********[" + getCurrentTime() + "]" + respondMSG.getParameter(0) + ": "
                                 + respondMSG.getBody());

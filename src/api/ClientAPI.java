@@ -150,7 +150,7 @@ public class ClientAPI implements Codes {
 
     /**
      * 
-     * @param chatId      creatorId + numOfChats of the crator
+     * @param chatId        creatorId + numOfChats of the crator
      * @param creatorNick
      * @param chatTitle
      * @param chatDesc
@@ -162,7 +162,7 @@ public class ClientAPI implements Codes {
      *         receptor = chatDesc
      *         parameters = each parameter is a member ref
      */
-    public MSG createNewChatReq(String chatTitle, String chatDesc, String[] memberStringRef, String numChats){
+    public MSG createNewChatReq(String chatTitle, String chatDesc, String[] memberStringRef, String numChats) {
         msgOut = new MSG(MSG.Type.REQUEST);
 
         msgOut.setAction(REQ_CREATE_CHAT);
@@ -195,6 +195,7 @@ public class ClientAPI implements Codes {
 
         return msgOut;
     }
+
     /**
      * 
      * @param emisorId

@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import com.chat.Chat;
 import com.chat.Member;
 import com.controller.Connection;
@@ -15,6 +17,7 @@ import com.controller.handlers.IPKGHandler;
 
 import GUI.GUI;
 import api.ClientAPI;
+import controller.manager.FileManager;
 
 public class ClientConnection extends Connection implements Env {
 
@@ -41,6 +44,7 @@ public class ClientConnection extends Connection implements Env {
      */
     public ClientConnection(Socket socket, IMSGHandler msgHandler, IPKGHandler pckgHandler) {
         super(socket, msgHandler, pckgHandler);
+        FileManager.initInstance(this);
     }
 
     /**
@@ -51,6 +55,7 @@ public class ClientConnection extends Connection implements Env {
      */
     public ClientConnection(String nickName, IMSGHandler msgHandler, IPKGHandler pckgHandler) {
         super(nickName, msgHandler, pckgHandler);
+        FileManager.initInstance(this);
     }
 
     /* PUBLIC */
@@ -94,24 +99,17 @@ public class ClientConnection extends Connection implements Env {
         }
     }
 
-    public void sendToChat(String chatId, String txt) {
+    public void sendMsgToChat(String chatId, String emisorId, String emisorNick, String text) {
+        try {
+            write(ClientAPI.newRequest().sendMsgToChatReq(chatId, emisorId, emisorNick, text));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-    }
-
-    /**
-     * 
-     * @param currentChat
-     * @param text
-     * @throws SocketException
-     * @throws IOException
-     */
-    public void sendToChat(Chat currentChat, String text) throws SocketException, IOException {
-        String chatId = currentChat.getChatId();
-        write(ClientAPI.newRequest().sendMsgToChatReq(
-                chatId,
-                getConId(),
-                getNick(),
-                text));
     }
 
     /**
@@ -178,33 +176,43 @@ public class ClientConnection extends Connection implements Env {
 
     public void createNewChat(String chatTitle, String chatDec, List<String> membersToAddList) {
 
-        String[] memberRefs;
-        Member creator = Member.newCreator(getConId(), getNick());
+        if (FileManager.getInstance().initConvHistory(chatTitle, true)) {
+            String[] memberRefs;
+            Member creator = Member.newCreator(getConId(), getNick());
 
-        if (membersToAddList == null) {
-            memberRefs = new String[1];
-            memberRefs[0] = creator.getReference();
-        } else {
-            memberRefs = new String[membersToAddList.size() + 1];
-            memberRefs[0] = creator.getReference();
-            
-            int i = 1;
-            for (String iMemberRef : membersToAddList) {
-                memberRefs[i] = iMemberRef;
-                i++;
+            if (membersToAddList == null) {
+                // if no members(membersToAddList == null) we add a member at 0: the creator
+                memberRefs = new String[1];
+                memberRefs[0] = creator.getReference();
+            } else {
+                // we parse the membersToAddList to an Array
+                memberRefs = new String[membersToAddList.size() + 1];
+                memberRefs[0] = creator.getReference();
+
+                int i = 1;
+                for (String iMemberRef : membersToAddList) {
+                    memberRefs[i] = iMemberRef;
+                    i++;
+                }
             }
+
+            try {
+                GUI.getInstance().pClientCon
+                        .write(ClientAPI.newRequest().createNewChatReq(chatTitle, chatDec, memberRefs, getNumChats()));
+            } catch (SocketException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            oneMoreChat();
+            JOptionPane.showMessageDialog(null, "Chat created");
+        } else {
+            JOptionPane.showMessageDialog(null, "A chat with that name already exits");
         }
 
-        try {
-            GUI.getInstance().pClientCon
-                    .write(ClientAPI.newRequest().createNewChatReq(chatTitle, chatDec, memberRefs, getNumChats()));
-        } catch (SocketException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     public void refreshState() throws SocketException, IOException {
@@ -216,5 +224,4 @@ public class ClientConnection extends Connection implements Env {
 
     /* RESPONDS */
     /* OVERRIDE */
-
 }

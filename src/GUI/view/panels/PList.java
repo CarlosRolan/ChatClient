@@ -13,6 +13,7 @@ import com.chat.Chat;
 import com.chat.Member;
 
 import GUI.view.item.MyItemView;
+import GUI.view.item.MyItemView.IMyItemViewListener;
 
 public class PList extends JPanel {
 
@@ -24,13 +25,12 @@ public class PList extends JPanel {
         initComponents();
     }
 
-
     public void initComponents() {
         setLayout(new BorderLayout());
         mainList = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         // REMAINDER places it below last, and BASELINE above
-        gbc.gridwidth = GridBagConstraints.BASELINE;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.weightx = 1;
         gbc.weighty = 1;
         mainList.add(new JPanel(), gbc);
@@ -38,33 +38,33 @@ public class PList extends JPanel {
         add(scroll);
     }
 
-    public void refreshChatList(List<String> chaList) {
+    public void refreshChatList(List<String> chaList, IMyItemViewListener itemListener) {
+        mainList.removeAll();
         for (String string : chaList) {
-            System.out.println("CHAT REF on ITEM " + string);
             Chat fromRef = Chat.initChat(string);
-            MyItemView userItem = MyItemView.createChatItem(fromRef);
+            MyItemView userItem = MyItemView.createItemView(fromRef, itemListener);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbc.weightx = 1;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             mainList.add(userItem, gbc, 0);
         }
-        revalidate();
+        validate();
         repaint();
     }
 
-    public void refreshConList(List<String> onlineList) {
+    public void refreshConList(List<String> onlineList, IMyItemViewListener itemListener) {
+        mainList.removeAll();
         for (String string : onlineList) {
-            System.out.println(string);
             String[] data = string.split(Member.SEPARATOR);
-            MyItemView userItem = MyItemView.createUserItem(data[1], "bio");
+            MyItemView userItem = MyItemView.createItemView(data[0], data[1], "bio is empty", itemListener);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridwidth = GridBagConstraints.REMAINDER;
             gbc.weightx = 1;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             mainList.add(userItem, gbc, 0);
         }
-        revalidate();
+        validate();
         repaint();
     }
 

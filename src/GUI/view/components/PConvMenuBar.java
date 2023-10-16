@@ -6,9 +6,9 @@ import javax.swing.ButtonGroup;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-public class MyMenuBar extends JMenuBar {
+public class PConvMenuBar extends JMenuBar {
 
-    private final String ITEM_0 = "Profile";
+    private final String ITEM_0 = "Show info";
 
     private final String ITEM_1 = "New Chat..";
 
@@ -16,13 +16,13 @@ public class MyMenuBar extends JMenuBar {
     private final String ITEM_2_0 = "Tree View";
     private final String ITEM_2_1 = "Tab View";
 
-    private final IClickListener iListener;
+    private final IMenuBarListener iListener;
 
     private ButtonGroup btnGroup = new ButtonGroup();
 
     public final String[] MENU_ITEMS = { ITEM_0, ITEM_1, ITEM_2 };
 
-    public MyMenuBar(IClickListener listener) {
+    public PConvMenuBar(IMenuBarListener listener) {
         iListener = listener;
         initComponents();
     }
@@ -78,15 +78,16 @@ public class MyMenuBar extends JMenuBar {
     }
 
     private void iAction1() {
-      
+
     }
 
     private void iAction2() {
 
     }
 
-    public interface IClickListener {
+    public interface IMenuBarListener {
         void onItemClick1();
+
         void enableTreeView();
 
         void enableTabView();

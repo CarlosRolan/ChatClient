@@ -19,6 +19,7 @@ import com.data.MSG;
 import com.data.PKG;
 
 import GUI.view.MainMenu;
+import GUI.view.panels.PConv;
 import controller.connection.ClientConnection;
 import controller.manager.FileManager;
 
@@ -36,9 +37,14 @@ public class GUI extends Thread implements Codes {
         return instance;
     }
 
+    public final ClientConnection pClientCon;
     /* PROPERTIES */
-    /* FINAL */
-    private final TimerTask tTask = new TimerTask() {
+
+    private List<String> mConRefList = new ArrayList<>();
+    private List<String> mChatRefList = new ArrayList<>();
+    private IGUIListener iUpdate;
+    public final List<PConv> convListRef = new ArrayList<>();
+    private final TimerTask tupdateTask = new TimerTask() {
 
         @Override
         public void run() {
@@ -53,12 +59,6 @@ public class GUI extends Thread implements Codes {
 
     };
 
-    public final ClientConnection pClientCon;
-
-    private List<String> mConRefList = new ArrayList<>();
-    private List<String> mChatRefList = new ArrayList<>();
-    private IGUIListener iUpdate;
-
     /* GETTERs */
     public List<String> getChatRefList() {
         return mChatRefList;
@@ -70,7 +70,6 @@ public class GUI extends Thread implements Codes {
 
     /* SETTERs */
     public void addChatRef(String chatRef) {
-        pClientCon.oneMoreChat();
         mChatRefList.add(chatRef);
     }
 
@@ -85,15 +84,32 @@ public class GUI extends Thread implements Codes {
 
     }
 
+    public void addConvPanelRef(PConv convPanel) {
+        convListRef.add(convPanel);
+    }
+
+    public void removeConvPanelRef(PConv convPanel) {
+        convListRef.remove(convPanel);
+    }
+
+    public Chat getChat(String chatId) {
+        for (String iRef : mChatRefList) {
+            Chat iter = Chat.initChat(iRef);
+            if (iter.getChatId().equals(chatId)) {
+                return iter;
+            }
+        }
+
+        return null;
+    }
+
     public boolean conHasUpdate(List<String> updatedConRefList) {
         if (updatedConRefList.size() != mConRefList.size())
             return true;
 
-        for (String iRef : mConRefList) {
-            for (String iRef2 : updatedConRefList) {
-                if (!iRef.startsWith(iRef2))
-                    return true;
-            }
+        for (String iUpdatedConRef : updatedConRefList) {
+            if (!mConRefList.contains(iUpdatedConRef))
+                return true;
         }
 
         return false;
@@ -104,11 +120,9 @@ public class GUI extends Thread implements Codes {
         if (updatedChatRefList.size() != mChatRefList.size())
             return true;
 
-        for (String iRef : mChatRefList) {
-            for (String iRef2 : updatedChatRefList) {
-                if (!iRef.startsWith(iRef2))
-                    return true;
-            }
+        for (String iUpdatedRef : updatedChatRefList) {
+            if (!mChatRefList.contains(iUpdatedRef))
+                return true;
         }
 
         return false;
@@ -118,30 +132,11 @@ public class GUI extends Thread implements Codes {
         iUpdate = listener;
     }
 
-    /* PRIVATE METHODs */
-    private boolean isNewChatReference(String chatReference) {
-        for (String iter : mChatRefList) {
-            if (iter.equals(chatReference)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isNewConReference(String conRef) {
-        for (String iter : mConRefList) {
-            if (iter.startsWith(conRef)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /* CONSTRUCTOR */
     private GUI() {
         setTheme();
         pClientCon = new ClientConnection(askForUserName(), IMSG_HANDLER, IPCKG_HANDLER);
-        new Timer().scheduleAtFixedRate(tTask, 1000, UPDATE_TIME);
+        new Timer().scheduleAtFixedRate(tupdateTask, 1000, UPDATE_TIME);
         FileManager.initInstance(pClientCon);
     }
 
@@ -188,15 +183,17 @@ public class GUI extends Thread implements Codes {
 
     @Override
     public void run() {
-        while (true) {
-            try {
+
+        try {
+            while (true)
                 pClientCon.listen();
-            } catch (ClassNotFoundException | IOException e) {
-                System.out.println("PROBLEM LISTENING SERVER");
-                break;
-            }
+        } catch (ClassNotFoundException e) {
+            System.err.println("CLSS NOT FOUND");
+        } catch (IOException e) {
+            System.err.println("IOEXCEPTION");
         }
         System.err.println("LISTEN THREAD STOPPED");
+
     }
 
     /* IMPLEMENTATIONS */
@@ -218,8 +215,11 @@ public class GUI extends Thread implements Codes {
         public void handleMessage(MSG message) {
 
             switch (message.getAction()) {
-                case MSG_TO_SINGLE:
-                    // SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message));
+                case MSG_FROM_SINGLE:
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message, false));
+                    break;
+                case MSG_FROM_CHAT:
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message, true));
                     break;
                 default:
                     System.out.println(WARN_UNREGISTERED_MSG_MESSAGE_ACTION);
@@ -250,7 +250,7 @@ public class GUI extends Thread implements Codes {
         @Override
         public void unHandledMSG(MSG arg0) {
             // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'unHandledMSG'");
+            throw new UnsupportedOperationException("UNHANDLED MSG TYPE!!!");
         }
     };
 
@@ -262,7 +262,7 @@ public class GUI extends Thread implements Codes {
             switch (mixed.getPKGName()) {
 
                 default:
-                    System.out.println(WARN_UNREGISTERED_PKG_MIXED_ACTION);
+                    System.err.println(WARN_UNREGISTERED_PKG_MIXED_ACTION);
                     break;
             }
         }
@@ -281,10 +281,16 @@ public class GUI extends Thread implements Codes {
 
                         if (iMsg.getAction().equals(REQ_INIT_CON)) {
                             String conId = iMsg.getEmisor();
-                            String conNick = iMsg.getReceptor();
 
-                            String iConRef = conId + Member.SEPARATOR + conNick;
-                            updatedConRefList.add(iConRef);
+                            System.out.println("pCLientCon " + pClientCon.getConId());
+                            System.out.println("conId " + conId);
+
+                            if (!conId.equals(pClientCon.getConId())) {
+                                String conNick = iMsg.getReceptor();
+
+                                String iConRef = conId + Member.SEPARATOR + conNick;
+                                updatedConRefList.add(iConRef);
+                            }
                         }
 
                         if (iMsg.getAction().equals(REQ_INIT_CHAT)) {
@@ -293,33 +299,33 @@ public class GUI extends Thread implements Codes {
                         }
                     }
 
+                    System.out.println("----");
+                    for (String string : updatedConRefList) {
+                        System.out.println("CON " + string);
+                    }
+
+                    for (String string : updatedChatRefList) {
+                        System.out.println("CHAT " + string);
+                    }
+                    System.out.println("----");
+
                     if (conHasUpdate(updatedConRefList)) {
-                        System.out.println(">>UPD USERS<<<");
+                        mConRefList = null;
                         mConRefList = updatedConRefList;
-                        SwingUtils.executeOnSwingThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                iUpdate.updateUsers();
-                            }
-                        });
+                        SwingUtils.executeOnSwingThread(() -> iUpdate.updateUsers());
                     }
 
                     if (chatsHasUpdate(updatedChatRefList)) {
-                        System.out.println(">>UPD CHATS<<<");
+                        mChatRefList = null;
                         mChatRefList = updatedChatRefList;
-                        SwingUtils.executeOnSwingThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                iUpdate.updateChats();
-                            }
-                        });
+                        SwingUtils.executeOnSwingThread(() -> iUpdate.updateChats());
 
                     }
 
                     break;
 
                 default:
-                    System.out.println(WARN_UNREGISTERED_PKG_COLLECTION_ACTION);
+                    System.err.println(WARN_UNREGISTERED_PKG_COLLECTION_ACTION);
                     break;
             }
 
@@ -327,8 +333,7 @@ public class GUI extends Thread implements Codes {
 
         @Override
         public void unHandledPKG(PKG arg0) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'unHandledPKG'");
+            throw new UnsupportedOperationException("UNHANDLED PKG TYPE!!!!");
         }
 
     };
@@ -338,6 +343,8 @@ public class GUI extends Thread implements Codes {
         void updateUsers();
 
         void updateChats();
+
+        void onMessageReceived(MSG msgReceived, boolean isChat);
     }
 
 }

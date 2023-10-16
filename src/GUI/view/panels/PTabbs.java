@@ -6,10 +6,12 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import GUI.view.item.MyItemView.IMyItemViewListener;
+
 public class PTabbs extends JTabbedPane {
 
-    private final int INDEX_USERS = 0;
-    private final int INDEX_CHATS = 1;
+    public final int INDEX_USERS = 0;
+    public final int INDEX_CHATS = 1;
 
     private final String TAB_USERS = "USUARIOS";
     private final String TAB_CHATS = "CHATS";
@@ -62,13 +64,13 @@ public class PTabbs extends JTabbedPane {
         });
     }
 
-    public void refreshUsersTab(List<String> updatedConRefList) {
-        pUsersTab.refreshConList(updatedConRefList);
+    public void refreshUsersTab(List<String> updatedConRefList, IMyItemViewListener itemListener) {
+        pUsersTab.refreshConList(updatedConRefList, itemListener);
         addNotificationOnUsersTab();
     }
 
-    public void refresChatsTab(List<String> updatedChatRefList) {
-        pChatsTab.refreshChatList(updatedChatRefList);
+    public void refresChatsTab(List<String> updatedChatRefList, IMyItemViewListener itemListener) {
+        pChatsTab.refreshChatList(updatedChatRefList, itemListener);
         addNotificationOnChatsTab();
     }
 

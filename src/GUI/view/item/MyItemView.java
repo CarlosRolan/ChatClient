@@ -10,8 +10,6 @@ import javax.swing.border.MatteBorder;
 
 import com.chat.Chat;
 
-import GUI.view.panels.PChat;
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
@@ -26,83 +24,35 @@ public class MyItemView extends javax.swing.JPanel {
 
 	private Border hover = BorderFactory.createLineBorder(Color.DARK_GRAY);
 
-	/* STATIC */
-	public static MyItemView createChatItem(Chat chat) {
-		return new MyItemView(chat);
+	private final IMyItemViewListener iMyItemViewListener;
+
+	private final String mId;
+	private String mTitle;
+	private String mSubTitle;
+	private boolean mIsChat;
+
+	public static MyItemView createItemView(String id, String nick, String bio, IMyItemViewListener listener) {
+		return new MyItemView(id, nick, bio, listener, false);
 	}
 
-	public static MyItemView createUserItem(String nick, String bio) {
-		return new MyItemView(nick, bio);
+	public static MyItemView createItemView(Chat chat, IMyItemViewListener listener) {
+		String itemId = chat.getChatId();
+		String itemTitle = chat.getTitle();
+		String itemSubTitle = chat.getDescription();
+		return new MyItemView(itemId, itemTitle, itemSubTitle, listener, true);
+	
 	}
 
 	/**
 	 * Creates new form Conversation
 	 */
-	private MyItemView(String nick, String bio) {
-		initUserItemComp(nick, bio);
-		addMouseListener(new MouseListener() {
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				PChat.showOnWindow(nick, bio);
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-
-			}
-
-		});
-	}
-
-	/**
-	 * Creates new form Chats
-	 */
-	private MyItemView(Chat chat) {
-		initChatItemComp(chat);
-		addMouseListener(new MouseListener() {
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				PChat.showOnWindow(chat.getTitle(), chat.getDescription());
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-
-			}
-
-		});
+	private MyItemView(String itemId, String itemTitle, String itemSubitle, IMyItemViewListener listener, boolean isChat) {
+		iMyItemViewListener = listener;
+		mId = itemId;
+		mIsChat = isChat;
+		mTitle = itemTitle;
+		mSubTitle = itemSubitle;
+		initComponents();
 	}
 
 	/**
@@ -112,7 +62,7 @@ public class MyItemView extends javax.swing.JPanel {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
-	private void initChatItemComp(Chat chat) {
+	private void initComponents() {
 
 		mImage = new java.awt.Canvas();
 		mLabel0 = new javax.swing.JLabel();
@@ -127,9 +77,8 @@ public class MyItemView extends javax.swing.JPanel {
 
 		mLabel0.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
 
-		mLabel0.setText(chat.getTitle());
-
-		mLabel1.setText(chat.getDescription());
+		mLabel0.setText(mTitle);
+		mLabel1.setText(mSubTitle);
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
@@ -164,66 +113,59 @@ public class MyItemView extends javax.swing.JPanel {
 												.addGap(0, 0, 0)
 												.addComponent(mLabel1)))
 								.addContainerGap()));
+		addMouseListener(mouseListener);
 	}// </editor-fold>
-
-	private void initUserItemComp(String nick, String bio) {
-		mImage = new java.awt.Canvas();
-		mLabel0 = new javax.swing.JLabel();
-		mLabel1 = new javax.swing.JLabel();
-
-		setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
-
-		mImage.setBackground(new java.awt.Color(0, 153, 153));
-		mImage.setMaximumSize(new java.awt.Dimension(64, 64));
-		mImage.setMinimumSize(new java.awt.Dimension(32, 32));
-		mImage.setPreferredSize(new java.awt.Dimension(64, 64));
-
-		mLabel0.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
-
-		mLabel0.setText(nick);
-
-		mLabel1.setText(bio);
-
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(mImage,
-										javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addGroup(layout.createParallelGroup(
-										javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(mLabel0)
-										.addComponent(mLabel1))
-								.addContainerGap()));
-		layout.setVerticalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addContainerGap()
-								.addGroup(layout.createParallelGroup(
-										javax.swing.GroupLayout.Alignment.LEADING,
-										false)
-										.addComponent(mImage,
-												javax.swing.GroupLayout.PREFERRED_SIZE,
-												javax.swing.GroupLayout.DEFAULT_SIZE,
-												javax.swing.GroupLayout.PREFERRED_SIZE)
-										.addGroup(layout.createSequentialGroup()
-												.addComponent(mLabel0)
-												.addGap(0, 0, 0)
-												.addComponent(mLabel1)))
-								.addContainerGap()));
-
-	}
 
 	// Variables declaration - do not modify
 	private java.awt.Canvas mImage;
 	private javax.swing.JLabel mLabel0;
 	private javax.swing.JLabel mLabel1;
 	// End of variables declaration
+
+	/* IMPLEMENTATIONs */
+
+	private final MouseListener mouseListener = new MouseListener() {
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+
+			System.out.println("Btn clicked " + e.getButton());
+			switch (e.getButton()) {
+				case MouseEvent.BUTTON1:
+					iMyItemViewListener.onItemRightClick(mId, mTitle, mSubTitle, mIsChat);
+					break;
+
+				case MouseEvent.BUTTON2:
+					break;
+
+			}
+
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+
+		}
+
+	};
+
+	public interface IMyItemViewListener {
+		void onItemRightClick(String itemId, String itemTitle, String itemSubtitle, boolean isChat);
+	}
 
 }

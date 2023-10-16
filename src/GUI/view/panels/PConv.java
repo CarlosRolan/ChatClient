@@ -5,59 +5,99 @@
 
 package GUI.view.panels;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 
+import com.data.MSG;
+
 import GUI.GUI;
-import GUI.SwingUtils;
 import controller.manager.FileManager;
 
 /**
  *
  * @author carlos
  */
-public class PChat extends javax.swing.JPanel {
+public class PConv extends javax.swing.JPanel {
 
-	private static PChat instance;
+	/* STATIC */
+	public static PConv createInstance(String convId, String convTitle, String convSubTitle, IConvListener listener,
+			boolean isChat) {
+		return new PConv(convId, convTitle, convSubTitle, listener, isChat);
+	}
 
-	public static void showOnWindow(String id, String nick) {
-		SwingUtils.executeOnSwingThread(new Runnable() {
-
+	public static void showOnWindow(PConv instance) {
+		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				JFrame conversation = new JFrame("Chat with " + nick);
-				instance = new PChat(id, nick);
-				conversation.add(instance);
-				conversation.setResizable(false);
-				conversation.pack();
-				conversation.
-
-						setVisible(true);
+				JFrame frame = new JFrame(instance.getTitle());
+				frame.setContentPane(instance);
+				frame.setSize(400, 400);
+				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+				frame.setLocation(dim.width / 2 - dim.getSize().width / 2,
+						dim.height / 2 - dim.getSize().height / 2);
+				frame.setVisible(true);
 			}
 		});
 	}
 
-	private boolean isChat = false;
-	public DefaultListModel<String> msgListModel = new DefaultListModel<String>();
+	/* PROPs */
+	private volatile List<String> history;
+	private boolean mIsChat = false;
+	public DefaultListModel<String> mMsgListModel = new DefaultListModel<String>();
+	private String mTitle;
+	private String mSubTitle;
+	private String mId;
+	private final IConvListener iConvListener;
 
-	public String title;
-	public String id;
+	public String getTitle() {
+		return mTitle;
+	}
 
-	private PChat(String convId, String convTitle) {
-		isChat = false;
-		id = convId;
-		title = convTitle;
-		initComponents(convId, convTitle);
+	public synchronized void addLineToChat(String line) {
+		history.add(line);
+	}
+
+	/**
+	 * The conversation's id can be a Chat id or a connection id
+	 * 
+	 * @return
+	 */
+	public String getConvId() {
+		return mId;
+	}
+
+	public boolean isConvChat() {
+		return mIsChat;
+	}
+
+	private PConv(String convId, String convTitle, String convSubTitle, IConvListener listener, boolean isChat) {
+		iConvListener = listener;
+		mIsChat = isChat;
+		mId = convId;
+		mTitle = convTitle;
+		mSubTitle = convSubTitle;
+		if (!FileManager.getInstance().initConvHistory(convTitle, isChat)) {
+			history = FileManager.getInstance().loadConvHistory(convTitle, isChat);
+			loadHistory();
+		}
+		initComponents();
 	}
 
 	public void addLine(String line) {
-		msgListModel.addElement(line);
+		FileManager.getInstance().saveConvHistory(mTitle, line, mIsChat);
+		try {
+			mMsgListModel.addElement(line);
+		} catch (Exception e) {
+			System.out.println("U are not in the conversation window");
+		}
+		validate();
 	}
 
 	/**
@@ -67,17 +107,10 @@ public class PChat extends javax.swing.JPanel {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated Code">
-	private void initComponents(String receptorId, String receptorNick) {
-
-		FileManager.getInstance().initHistoryFile(id, title);
-
-		ArrayList<String> lines = FileManager.getInstance().loadHistory();
-		for (String line : lines) {
-			addLine(line);
-		}
+	private void initComponents() {
 
 		jScrollPane1 = new javax.swing.JScrollPane();
-		jMessages = new javax.swing.JList<>(msgListModel);
+		jMessages = new javax.swing.JList<>(mMsgListModel);
 		jScrollPane2 = new javax.swing.JScrollPane();
 		jTextPane1 = new javax.swing.JTextPane();
 		jButton1 = new javax.swing.JButton();
@@ -92,15 +125,10 @@ public class PChat extends javax.swing.JPanel {
 		jScrollPane2.setViewportView(jTextPane1);
 
 		jButton1.setText("SEND");
-		jButton1.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				actionSend();
-			}
-		});
+		jButton1.addActionListener(arg0 -> actionSend());
 
 		jLabel2.setIcon(new javax.swing.ImageIcon("/home/carlos/Desktop/rawIcons/btn_copy_to_clipboard.png")); // NOI18N
-		jLabel2.setText(receptorNick);
+		jLabel2.setText(mTitle);
 		jLabel2.setAlignmentX(0.5F);
 		jLabel2.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
 		jLabel2.setMaximumSize(new java.awt.Dimension(64, 256));
@@ -150,30 +178,33 @@ public class PChat extends javax.swing.JPanel {
 	private javax.swing.JList<String> jMessages;
 	private javax.swing.JScrollPane jScrollPane1;
 	private javax.swing.JScrollPane jScrollPane2;
-	private javax.swing.JTextPane jTextPane1;
+	public javax.swing.JTextPane jTextPane1;
 	// End of variables declaration
 
 	private void actionSend() {
-		try {
+		String text = jTextPane1.getText();
 
-			String text = jTextPane1.getText();
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+		LocalDateTime now = LocalDateTime.now();
 
-			GUI.getInstance().pClientCon.sendToSingle(id, title, text);
+		String line = "[" + dtf.format(now) + "]" + GUI.getInstance().pClientCon.getNick() + ": " + text;
 
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
-			LocalDateTime now = LocalDateTime.now();
+		addLine(line);
+		jTextPane1.setText("");
 
-			String msgToChat = "[" + dtf.format(now) + "]" + text;
+		iConvListener.onMsgSent(mId, mTitle, mSubTitle, line, mIsChat);
+	}
 
-			if (!"".equals(text) && text != null) {
-				addLine(msgToChat);
-				jTextPane1.setText("");
-			}
-
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	private void loadHistory() {
+		for (String string : history) {
+			addLine(string);
 		}
+	}
+
+	public interface IConvListener {
+		void onMsgSent(String convId, String convTitle, String convSubTitle, String text, boolean isChat);
+
+		void onMsgRecieved(MSG msgReceived, boolean isChat);
 	}
 
 }

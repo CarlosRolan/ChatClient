@@ -33,12 +33,12 @@ public class FileManager {
 
     private final String TXT_EXT = ".txt";
 
-    private final String CONFIG_FILE = "config" + TXT_EXT;
-    private final String HISTORY_FILE = "history" + TXT_EXT;
+    private final String CONFIG_FILE = "_config" + TXT_EXT;
+    private final String HISTORY_FILE = "_history" + TXT_EXT;
 
     private File mChatsDir;
     private File mUsersDir;
-    private File mHistoryFile;
+    private File mProfileFile;
 
     private FileManager(Connection userCon) {
         initPartenDirs(userCon.getConId(), userCon.getNick());
@@ -47,26 +47,104 @@ public class FileManager {
     private void initPartenDirs(String userId, String userNick) {
         mChatsDir = new File(CHATS_DIR);
         mUsersDir = new File(USERS_DIR);
+        mProfileFile = new File(PROFILE_DIR);
 
         mChatsDir.mkdirs();
         mUsersDir.mkdirs();
+        mProfileFile.mkdirs();
 
     }
 
     public void initHistoryFile(String id, String nick) {
-        mHistoryFile = new File(mUsersDir.getAbsolutePath() + "/" + nick + "_" + HISTORY_FILE);
+        mProfileFile = new File(mUsersDir.getAbsolutePath() + "/" + nick + HISTORY_FILE);
         try {
-            mHistoryFile.createNewFile();
+            mProfileFile.createNewFile();
         } catch (IOException e) {
 
         }
+    }
+
+    public boolean initConvHistory(String convTitle, boolean isChat) {
+        String pathName;
+        if (isChat) {
+            pathName = mChatsDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        } else {
+            pathName = mUsersDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        }
+
+        File chatHistory = new File(pathName);
+
+        if (!chatHistory.exists()) {
+            try {
+                chatHistory.createNewFile();
+                return true;
+            } catch (IOException e) {
+                System.out.println("NO SE PUEDE CREAR EL ARCHIVO DE HISTORY" + convTitle);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public void saveConvHistory(String convTitle, String line, boolean isChat) {
+
+        String pathName;
+        if (isChat) {
+            pathName = mChatsDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        } else {
+            pathName = mUsersDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        }
+        FileWriter fw = null;
+        File chatHistory = new File(pathName);
+
+        try {
+            fw = new FileWriter(chatHistory, Charset.defaultCharset(), true);
+
+            fw.append(line + "\n");
+            fw.flush();
+
+            fw.close();
+
+        } catch (IOException e) {
+            System.out.println("NO SE PUEDE GUARDAR EL ARCHIVO DE HISTORY");
+        }
+
+    }
+
+    public ArrayList<String> loadConvHistory(String convTitle, boolean isChat) {
+
+        String pathName;
+        if (isChat) {
+            pathName = mChatsDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        } else {
+            pathName = mUsersDir.getAbsolutePath() + "/" + convTitle + HISTORY_FILE;
+        }
+        ArrayList<String> history = new ArrayList<>();
+        File chatHistory = new File(pathName);
+        Scanner myReader = null;
+
+        try {
+            myReader = new Scanner(chatHistory);
+        } catch (FileNotFoundException e) {
+            System.out.println("PROBLEM LOAD CONV HISTORY");
+        }
+
+        while (myReader.hasNextLine()) {
+            String line = myReader.nextLine();
+            history.add(line);
+        }
+
+        myReader.close();
+
+        return history;
+
     }
 
     public void saveHistory(String nick, String timeData, String newLine) {
 
         FileWriter fw = null;
         try {
-            fw = new FileWriter(mHistoryFile, Charset.defaultCharset(), true);
+            fw = new FileWriter(mProfileFile, Charset.defaultCharset(), true);
 
             fw.append("[" + timeData + "]" + nick + ":" + newLine + "\n");
             fw.flush();
@@ -83,7 +161,7 @@ public class FileManager {
         ArrayList<String> history = new ArrayList<>();
         Scanner myReader = null;
         try {
-            myReader = new Scanner(mHistoryFile);
+            myReader = new Scanner(mProfileFile);
         } catch (FileNotFoundException e) {
             System.out.println("PROBLEM LOAD CHAT RAW");
         }
@@ -147,25 +225,6 @@ public class FileManager {
         }
 
         return chatInfo;
-    }
-
-    private String loadChatHistory() {
-        String rawData = "";
-        Scanner myReader = null;
-        try {
-            myReader = new Scanner(new File(""));
-        } catch (FileNotFoundException e) {
-            System.out.println("PROBLEM LOAD CHAT RAW");
-        }
-
-        while (myReader.hasNextLine()) {
-            String line = myReader.nextLine();
-            rawData += line;
-        }
-
-        myReader.close();
-
-        return rawData;
     }
 
 }

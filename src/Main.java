@@ -64,12 +64,17 @@ public class Main {
 
         int op = selectUI();
 
-        if (op == JOptionPane.NO_OPTION) {
-            launchCLI();
-        } else {
-            launchGraphicUI();
+        switch (op) {
+            case JOptionPane.YES_OPTION:
+                launchGraphicUI();
+                break;
+            case JOptionPane.NO_OPTION:
+                launchCLI();
+                break;
+            default:
+                System.out.println("Closing localChat");
+                break;
         }
-
     }
 
 }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 
 import com.chat.Member;
 
@@ -19,7 +20,7 @@ import GUI.GUI;
  *
  * @author carlos
  */
-public class MyUserPicker extends javax.swing.JDialog {
+public class MyUserPicker extends JDialog {
 
     private final List<String> mSelUserList;
 
