@@ -5,8 +5,6 @@ import com.data.MSG;
 
 public class ClientAPI implements Codes {
 
-    // TODO AVOID TO USE CHATS AND CONNECTIONS AND USE ONLY REFS
-
     private MSG msgOut = null;
 
     public static ClientAPI newRequest() {
@@ -180,18 +178,17 @@ public class ClientAPI implements Codes {
      * @param chatId
      * @param emisorId
      * @param emisorNick
-     * @param text
+     * @param line
      * @return
      */
-    public MSG sendMsgToChatReq(String chatId, String emisorId, String emisorNick, String text) {
+    public MSG sendMsgToChatReq(String chatId, String emisorId, String line) {
 
         msgOut = new MSG(MSG.Type.MESSAGE);
 
         msgOut.setAction(MSG_TO_CHAT);
         msgOut.setEmisor(emisorId);
         msgOut.setReceptor(chatId);
-        msgOut.setParameter(0, emisorNick);
-        msgOut.setBody(text);
+        msgOut.setBody(line);
 
         return msgOut;
     }

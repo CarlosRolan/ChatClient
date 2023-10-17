@@ -40,7 +40,7 @@ public class GUI extends Thread implements Codes {
     public final ClientConnection pClientCon;
     /* PROPERTIES */
 
-    private List<String> mConRefList = new ArrayList<>();
+    private List<String> mUserRefList = new ArrayList<>();
     private List<String> mChatRefList = new ArrayList<>();
     private IGUIListener iUpdate;
     public final List<PConv> convListRef = new ArrayList<>();
@@ -64,8 +64,8 @@ public class GUI extends Thread implements Codes {
         return mChatRefList;
     }
 
-    public List<String> getConRefList() {
-        return mConRefList;
+    public List<String> getUserRefList() {
+        return mUserRefList;
     }
 
     /* SETTERs */
@@ -74,25 +74,35 @@ public class GUI extends Thread implements Codes {
     }
 
     public void addConRef(String conRef) {
-        int i = mConRefList.indexOf(conRef);
+        int i = mUserRefList.indexOf(conRef);
 
         try {
-            mConRefList.set(i, conRef);
+            mUserRefList.set(i, conRef);
         } catch (IndexOutOfBoundsException e) {
-            mConRefList.add(conRef);
+            mUserRefList.add(conRef);
         }
 
     }
 
-    public void addConvPanelRef(PConv convPanel) {
+    public void addPanelInstance(PConv convPanel) {
         convListRef.add(convPanel);
     }
 
-    public void removeConvPanelRef(PConv convPanel) {
+    public void removePanelInstance(PConv convPanel) {
         convListRef.remove(convPanel);
     }
 
-    public Chat getChat(String chatId) {
+    public PConv getPanelInstance(String convPanelId) {
+        for (PConv iConv : convListRef) {
+            if (convPanelId.equals(iConv.getConvId())) {
+                return iConv;
+            }
+        }
+        System.out.println("INSTANCE NOT FOUND");
+        return null;
+    }
+
+    public Chat getChatFromId(String chatId) {
         for (String iRef : mChatRefList) {
             Chat iter = Chat.initChat(iRef);
             if (iter.getChatId().equals(chatId)) {
@@ -103,12 +113,12 @@ public class GUI extends Thread implements Codes {
         return null;
     }
 
-    public boolean conHasUpdate(List<String> updatedConRefList) {
-        if (updatedConRefList.size() != mConRefList.size())
+    public boolean usersHasUpdate(List<String> updatedUserRefList) {
+        if (updatedUserRefList.size() != mUserRefList.size())
             return true;
 
-        for (String iUpdatedConRef : updatedConRefList) {
-            if (!mConRefList.contains(iUpdatedConRef))
+        for (String iUpdatedUserRef : updatedUserRefList) {
+            if (!mUserRefList.contains(iUpdatedUserRef))
                 return true;
         }
 
@@ -128,7 +138,7 @@ public class GUI extends Thread implements Codes {
         return false;
     }
 
-    public void setOnUpdate(IGUIListener listener) {
+    public void setUpdateListener(IGUIListener listener) {
         iUpdate = listener;
     }
 
@@ -219,6 +229,13 @@ public class GUI extends Thread implements Codes {
                     SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message, false));
                     break;
                 case MSG_FROM_CHAT:
+                    /*
+                     * toChat.setAction(MSG_FROM_CHAT);
+                     * toChat.setEmisor(emisorId);
+                     * toChat.setReceptor(currentChat.getChatId());
+                     * toChat.setParameter(0, emisorNick);
+                     * toChat.setBody(text);
+                     */
                     SwingUtils.executeOnSwingThread(() -> iUpdate.onMessageReceived(message, true));
                     break;
                 default:
@@ -249,7 +266,6 @@ public class GUI extends Thread implements Codes {
 
         @Override
         public void unHandledMSG(MSG arg0) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("UNHANDLED MSG TYPE!!!");
         }
     };
@@ -274,7 +290,7 @@ public class GUI extends Thread implements Codes {
 
                 case COLLECTION_UPDATE:
 
-                    List<String> updatedConRefList = new ArrayList<>();
+                    List<String> updatedUserRefList = new ArrayList<>();
                     List<String> updatedChatRefList = new ArrayList<>();
 
                     for (MSG iMsg : collection.getMessagesList()) {
@@ -282,14 +298,11 @@ public class GUI extends Thread implements Codes {
                         if (iMsg.getAction().equals(REQ_INIT_CON)) {
                             String conId = iMsg.getEmisor();
 
-                            System.out.println("pCLientCon " + pClientCon.getConId());
-                            System.out.println("conId " + conId);
-
                             if (!conId.equals(pClientCon.getConId())) {
                                 String conNick = iMsg.getReceptor();
 
                                 String iConRef = conId + Member.SEPARATOR + conNick;
-                                updatedConRefList.add(iConRef);
+                                updatedUserRefList.add(iConRef);
                             }
                         }
 
@@ -299,19 +312,19 @@ public class GUI extends Thread implements Codes {
                         }
                     }
 
-                    System.out.println("----");
-                    for (String string : updatedConRefList) {
-                        System.out.println("CON " + string);
+                    System.out.println("----UPDATE PKG----");
+                    for (String string : updatedUserRefList) {
+                        System.out.println("USER " + string);
                     }
 
                     for (String string : updatedChatRefList) {
                         System.out.println("CHAT " + string);
                     }
-                    System.out.println("----");
+                    System.out.println("------------------");
 
-                    if (conHasUpdate(updatedConRefList)) {
-                        mConRefList = null;
-                        mConRefList = updatedConRefList;
+                    if (usersHasUpdate(updatedUserRefList)) {
+                        mUserRefList = null;
+                        mUserRefList = updatedUserRefList;
                         SwingUtils.executeOnSwingThread(() -> iUpdate.updateUsers());
                     }
 

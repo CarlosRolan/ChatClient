@@ -36,7 +36,7 @@ public class MainMenu extends JFrame {
 	public MainMenu() {
 		mWeakReference = new WeakReference<MainMenu>(this);
 		initComponents();
-		GUI.getInstance().setOnUpdate(iUpdateListener);
+		GUI.getInstance().setUpdateListener(iUpdateListener);
 	}
 
 	/**
@@ -108,22 +108,28 @@ public class MainMenu extends JFrame {
 			for (PConv iPconv : GUI.getInstance().convListRef) {
 				if (iPconv.getConvId().equals(itemId)) {
 					isNewInstance = false;
-					if (iPconv.isVisible()) {
-						iPconv.requestFocus();
+					if (iPconv.getState()) {
+						iPconv.requestFocusInWindow();
 					} else {
 						PConv.showOnWindow(iPconv);
 					}
+
 					break;
 				}
 			}
 
 			if (isNewInstance) {
 				PConv instance = PConv.createInstance(itemId, itemTitle, itemSubtitle, iConvListener, isChat);
-				GUI.getInstance().addConvPanelRef(instance);
+				GUI.getInstance().addPanelInstance(instance);
 				PConv.showOnWindow(instance);
 			}
+		}
+
+		@Override
+		public void onNewMsg() {
 
 		}
+
 	};
 
 	private final IConvListener iConvListener = new IConvListener() {
@@ -142,23 +148,52 @@ public class MainMenu extends JFrame {
 
 		@Override
 		public void onMsgRecieved(MSG msgRecieved, boolean isChat) {
-			/*
-			 * toChat.setAction(MSG_FROM_CHAT);
-			 * toChat.setEmisor(emisorId);
-			 * toChat.setReceptor(currentChat.getChatId());
-			 * toChat.setParameter(0, emisorNick);
-			 * toChat.setBody(text);
-			 */
 
-			String convId = msgRecieved.getReceptor();
-			String line = msgRecieved.getBody();
+			String convId;
+			String convTitle;
+			String convSubtitle;
+			String line;
 
-			for (PConv iter : GUI.getInstance().convListRef) {
-				if (iter.getConvId().equals(convId)) {
-					iter.addLine(line);
-					break;
-				}
+			if (isChat) {
+				/*
+				 * CHAT
+				 * toChat.setAction(MSG_FROM_CHAT);
+				 * toChat.setEmisor(currentChat.getChatId());
+				 * toChat.setReceptor(currentChat.getTitle());
+				 * toChat.setParameter(0, currentChat.getDescription());
+				 * toChat.setBody(line);
+				 */
+				convId = msgRecieved.getEmisor();
+				convTitle = msgRecieved.getReceptor();
+				convSubtitle = msgRecieved.getParameter(0);
+				line = msgRecieved.getBody();
+			} else {
+
+				/*
+				 * SINGLE
+				 * directMSG.setAction(MSG_FROM_SINGLE);
+				 * directMSG.setEmisor(emisorId);
+				 * directMSG.setReceptor(receptorId);
+				 * directMSG.setParameter(0, emisorNick);
+				 * directMSG.setBody(text);
+				 */
+				convId = msgRecieved.getEmisor();
+				convTitle = msgRecieved.getParameter(0);
+				convSubtitle = "bio";
+				line = msgRecieved.getBody();
 			}
+
+			System.out.println("CONV ID (emisor)" + convId);
+			System.out.println("CONV TITLE (parameter)" + convTitle);
+
+			PConv instance = GUI.getInstance().getPanelInstance(convId);
+
+			if (instance == null) {
+				instance = PConv.createInstance(convId, convTitle, convSubtitle, iConvListener, isChat);
+				GUI.getInstance().addPanelInstance(instance);
+			}
+
+			instance.addLine(line);
 
 		}
 
@@ -190,7 +225,7 @@ public class MainMenu extends JFrame {
 		@Override
 		public void updateUsers() {
 			// por lo que dijo mario
-			List<String> temp = GUI.getInstance().getConRefList();
+			List<String> temp = GUI.getInstance().getUserRefList();
 			tabbedPane.refreshUsersTab(temp, iMyItemViewListener);
 		}
 
@@ -203,7 +238,11 @@ public class MainMenu extends JFrame {
 
 		@Override
 		public void onMessageReceived(MSG msgReceived, boolean isChat) {
-			tabbedPane.addNotificationOnChatsTab();
+			if (isChat) {
+				tabbedPane.addNotificationOnChatsTab();
+			} else {
+				tabbedPane.addNotificationOnUsersTab();
+			}
 			iConvListener.onMsgRecieved(msgReceived, isChat);
 		}
 
@@ -241,7 +280,7 @@ public class MainMenu extends JFrame {
 							break;
 						case JOptionPane.OK_OPTION:
 							// Por lo que diojo MArio
-							List<String> tempConRefs = GUI.getInstance().getConRefList();
+							List<String> tempConRefs = GUI.getInstance().getUserRefList();
 
 							MyUserPicker picker = new MyUserPicker(mWeakReference.get(), true, tempConRefs,
 									newChatTitle, newChatDesc);

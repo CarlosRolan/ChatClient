@@ -8,6 +8,10 @@ package GUI.view.panels;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -36,6 +40,7 @@ public class PConv extends javax.swing.JPanel {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
+				instance.setState(true);
 				JFrame frame = new JFrame(instance.getTitle());
 				frame.setContentPane(instance);
 				frame.setSize(400, 400);
@@ -43,6 +48,51 @@ public class PConv extends javax.swing.JPanel {
 				frame.setLocation(dim.width / 2 - dim.getSize().width / 2,
 						dim.height / 2 - dim.getSize().height / 2);
 				frame.setVisible(true);
+
+				// para abrir sola la instancia correcta
+				frame.addWindowListener(new WindowListener() {
+
+					@Override
+					public void windowActivated(WindowEvent e) {
+						instance.setState(true);
+
+					}
+
+					@Override
+					public void windowClosed(WindowEvent e) {
+						instance.setState(false);
+					}
+
+					@Override
+					public void windowClosing(WindowEvent e) {
+						instance.setState(false);
+
+					}
+
+					@Override
+					public void windowDeactivated(WindowEvent e) {
+
+					}
+
+					@Override
+					public void windowDeiconified(WindowEvent e) {
+			
+
+					}
+
+					@Override
+					public void windowIconified(WindowEvent e) {
+					
+					}
+
+					@Override
+					public void windowOpened(WindowEvent e) {
+						instance.setState(true);
+
+					}
+
+				});
+
 			}
 		});
 	}
@@ -54,6 +104,7 @@ public class PConv extends javax.swing.JPanel {
 	private String mTitle;
 	private String mSubTitle;
 	private String mId;
+	private boolean isOpen = false;
 	private final IConvListener iConvListener;
 
 	public String getTitle() {
@@ -62,6 +113,14 @@ public class PConv extends javax.swing.JPanel {
 
 	public synchronized void addLineToChat(String line) {
 		history.add(line);
+	}
+
+	public boolean getState() {
+		return isOpen;
+	}
+
+	public void setState(boolean open) {
+		isOpen = open;
 	}
 
 	/**
@@ -77,27 +136,28 @@ public class PConv extends javax.swing.JPanel {
 		return mIsChat;
 	}
 
+	public void requested() {
+		requestFocus();
+		jTextPane1.requestFocusInWindow();
+	}
+
+	public synchronized void addLine(String line) {
+		mMsgListModel.addElement(line);
+		FileManager.getInstance().saveConvHistory(mTitle, line, mIsChat);
+	}
+
 	private PConv(String convId, String convTitle, String convSubTitle, IConvListener listener, boolean isChat) {
 		iConvListener = listener;
 		mIsChat = isChat;
 		mId = convId;
 		mTitle = convTitle;
 		mSubTitle = convSubTitle;
+		isOpen = false;
 		if (!FileManager.getInstance().initConvHistory(convTitle, isChat)) {
 			history = FileManager.getInstance().loadConvHistory(convTitle, isChat);
 			loadHistory();
 		}
 		initComponents();
-	}
-
-	public void addLine(String line) {
-		FileManager.getInstance().saveConvHistory(mTitle, line, mIsChat);
-		try {
-			mMsgListModel.addElement(line);
-		} catch (Exception e) {
-			System.out.println("U are not in the conversation window");
-		}
-		validate();
 	}
 
 	/**
@@ -170,6 +230,20 @@ public class PConv extends javax.swing.JPanel {
 												javax.swing.GroupLayout.PREFERRED_SIZE)
 										.addComponent(jButton1))
 								.addContainerGap()));
+
+		addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				requested();
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+			}
+
+		});
+
 	}// </editor-fold>
 
 	// Variables declaration - do not modify
@@ -189,7 +263,7 @@ public class PConv extends javax.swing.JPanel {
 
 		String line = "[" + dtf.format(now) + "]" + GUI.getInstance().pClientCon.getNick() + ": " + text;
 
-		addLine(line);
+		addLine("(you)" + line);
 		jTextPane1.setText("");
 
 		iConvListener.onMsgSent(mId, mTitle, mSubTitle, line, mIsChat);
@@ -202,7 +276,7 @@ public class PConv extends javax.swing.JPanel {
 	}
 
 	public interface IConvListener {
-		void onMsgSent(String convId, String convTitle, String convSubTitle, String text, boolean isChat);
+		void onMsgSent(String convId, String convTitle, String convSubTitle, String line, boolean isChat);
 
 		void onMsgRecieved(MSG msgReceived, boolean isChat);
 	}

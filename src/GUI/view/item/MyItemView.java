@@ -6,7 +6,6 @@ import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
-import javax.swing.border.MatteBorder;
 
 import com.chat.Chat;
 
@@ -29,7 +28,8 @@ public class MyItemView extends javax.swing.JPanel {
 	private final String mId;
 	private String mTitle;
 	private String mSubTitle;
-	private boolean mIsChat;
+	private boolean mChat;
+	private int unreadMsgs;
 
 	public static MyItemView createItemView(String id, String nick, String bio, IMyItemViewListener listener) {
 		return new MyItemView(id, nick, bio, listener, false);
@@ -40,18 +40,25 @@ public class MyItemView extends javax.swing.JPanel {
 		String itemTitle = chat.getTitle();
 		String itemSubTitle = chat.getDescription();
 		return new MyItemView(itemId, itemTitle, itemSubTitle, listener, true);
-	
+
+	}
+
+	public void hasNewMsg() {
+		unreadMsgs++;
+		mLabel2.setText(String.valueOf(unreadMsgs));
 	}
 
 	/**
 	 * Creates new form Conversation
 	 */
-	private MyItemView(String itemId, String itemTitle, String itemSubitle, IMyItemViewListener listener, boolean isChat) {
+	private MyItemView(String itemId, String itemTitle, String itemSubitle, IMyItemViewListener listener,
+			boolean isChat) {
 		iMyItemViewListener = listener;
 		mId = itemId;
-		mIsChat = isChat;
+		mChat = isChat;
 		mTitle = itemTitle;
 		mSubTitle = itemSubitle;
+		unreadMsgs = 0;
 		initComponents();
 	}
 
@@ -67,8 +74,9 @@ public class MyItemView extends javax.swing.JPanel {
 		mImage = new java.awt.Canvas();
 		mLabel0 = new javax.swing.JLabel();
 		mLabel1 = new javax.swing.JLabel();
+		mLabel2 = new javax.swing.JLabel();
 
-		setBorder(new MatteBorder(0, 0, 1, 0, Color.GRAY));
+		setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
 		mImage.setBackground(new java.awt.Color(0, 153, 153));
 		mImage.setMaximumSize(new java.awt.Dimension(64, 64));
@@ -76,8 +84,8 @@ public class MyItemView extends javax.swing.JPanel {
 		mImage.setPreferredSize(new java.awt.Dimension(64, 64));
 
 		mLabel0.setFont(new java.awt.Font("Liberation Sans", 0, 18)); // NOI18N
-
 		mLabel0.setText(mTitle);
+
 		mLabel1.setText(mSubTitle);
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -86,33 +94,33 @@ public class MyItemView extends javax.swing.JPanel {
 				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 						.addGroup(layout.createSequentialGroup()
 								.addContainerGap()
-								.addComponent(mImage,
-										javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addGroup(layout.createParallelGroup(
-										javax.swing.GroupLayout.Alignment.LEADING)
+								.addComponent(mImage, javax.swing.GroupLayout.PREFERRED_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 										.addComponent(mLabel0)
 										.addComponent(mLabel1))
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(mLabel2)
 								.addContainerGap()));
 		layout.setVerticalGroup(
 				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 						.addGroup(layout.createSequentialGroup()
 								.addContainerGap()
-								.addGroup(layout.createParallelGroup(
-										javax.swing.GroupLayout.Alignment.LEADING,
-										false)
-										.addComponent(mImage,
-												javax.swing.GroupLayout.PREFERRED_SIZE,
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(mImage, javax.swing.GroupLayout.PREFERRED_SIZE,
 												javax.swing.GroupLayout.DEFAULT_SIZE,
 												javax.swing.GroupLayout.PREFERRED_SIZE)
-										.addGroup(layout.createSequentialGroup()
-												.addComponent(mLabel0)
-												.addGap(0, 0, 0)
-												.addComponent(mLabel1)))
-								.addContainerGap()));
+										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+												.addComponent(mLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 30,
+														javax.swing.GroupLayout.PREFERRED_SIZE)
+												.addGroup(layout.createSequentialGroup()
+														.addComponent(mLabel0)
+														.addPreferredGap(
+																javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+														.addComponent(mLabel1))))
+								.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		addMouseListener(mouseListener);
 	}// </editor-fold>
 
@@ -120,6 +128,7 @@ public class MyItemView extends javax.swing.JPanel {
 	private java.awt.Canvas mImage;
 	private javax.swing.JLabel mLabel0;
 	private javax.swing.JLabel mLabel1;
+	private javax.swing.JLabel mLabel2;
 	// End of variables declaration
 
 	/* IMPLEMENTATIONs */
@@ -129,10 +138,13 @@ public class MyItemView extends javax.swing.JPanel {
 		@Override
 		public void mouseClicked(MouseEvent e) {
 
+			unreadMsgs = 0;
+			mLabel2.setText(String.valueOf(unreadMsgs));
+
 			System.out.println("Btn clicked " + e.getButton());
 			switch (e.getButton()) {
 				case MouseEvent.BUTTON1:
-					iMyItemViewListener.onItemRightClick(mId, mTitle, mSubTitle, mIsChat);
+					iMyItemViewListener.onItemRightClick(mId, mTitle, mSubTitle, mChat);
 					break;
 
 				case MouseEvent.BUTTON2:
@@ -165,7 +177,8 @@ public class MyItemView extends javax.swing.JPanel {
 	};
 
 	public interface IMyItemViewListener {
-		void onItemRightClick(String itemId, String itemTitle, String itemSubtitle, boolean isChat);
+		void onItemRightClick(String iId, String iTitle, String iSubtitle, boolean isChat);
+		void onNewMsg(); 
 	}
 
 }

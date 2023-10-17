@@ -79,7 +79,6 @@ public class ClientConnection extends Connection implements Env {
         write(ClientAPI.newRequest().showAllMembersReq(chatId));
     }
 
-    // TODO we need the bnick of the requested single chat
     /**
      * 
      * @param singleId
@@ -87,6 +86,7 @@ public class ClientConnection extends Connection implements Env {
      * @param txt
      */
     public void sendToSingle(String singleId, String singleNick, String txt) {
+        // TODO unhandled exceptions
         try {
             write(ClientAPI.newRequest().sendSingleMsgReq(
                     getConId(),
@@ -99,14 +99,13 @@ public class ClientConnection extends Connection implements Env {
         }
     }
 
-    public void sendMsgToChat(String chatId, String emisorId, String emisorNick, String text) {
+    public void sendMsgToChat(String chatId, String emisorId, String emisorNick, String line) {
+        // TODO unhandled exceptions
         try {
-            write(ClientAPI.newRequest().sendMsgToChatReq(chatId, emisorId, emisorNick, text));
+            write(ClientAPI.newRequest().sendMsgToChatReq(chatId, emisorId, line));
         } catch (SocketException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -196,14 +195,13 @@ public class ClientConnection extends Connection implements Env {
                 }
             }
 
+            //TODO unhandled exceptions
             try {
                 GUI.getInstance().pClientCon
                         .write(ClientAPI.newRequest().createNewChatReq(chatTitle, chatDec, memberRefs, getNumChats()));
             } catch (SocketException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
