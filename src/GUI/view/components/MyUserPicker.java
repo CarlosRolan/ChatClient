@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 
+import com.chat.Chat;
 import com.chat.Member;
 
 import GUI.GUI;
@@ -22,16 +25,45 @@ import GUI.GUI;
  */
 public class MyUserPicker extends JDialog {
 
-    private final List<String> mSelUserList;
+    /* STATIC */
+
+    public static void selectMembers(java.awt.Frame parent, boolean modal, List<String> userOpList, String chatTitle,
+            String chatDesc) {
+
+        MyUserPicker picker = new MyUserPicker(parent, modal, userOpList, chatTitle, chatDesc, true);
+        picker.setVisible(true);
+    }
+
+    
+
+    public static void editPermissions(java.awt.Frame parent, boolean modal, List<String> userOpList, Chat chat) {
+
+        String chatId = chat.getChatId();
+        String chatDesc = chat.getDescription();
+
+        List<String> chatMembers = new ArrayList<>();
+
+        for (String iMemberRef : userOpList) {
+            if (chat.isMemberInChat(iMemberRef)) {
+                chatMembers.add(iMemberRef);
+            }
+        }
+
+        MyUserPicker picker = new MyUserPicker(parent, modal, chatMembers, chatId, chatDesc, false);
+        picker.setVisible(true);
+    }
+
+
+    private final List<String> mSelectedList;
 
     /**
      * Creates new form NewJDialog
      */
     public MyUserPicker(java.awt.Frame parent, boolean modal, List<String> userOpList, String chatTitle,
-            String chatDesc) {
+            String chatDesc, boolean isAdding) {
         super(parent, modal);
-        mSelUserList = new ArrayList<>();
-        initComponents(userOpList, chatTitle, chatDesc);
+        mSelectedList = new ArrayList<>();
+        initComponents(userOpList, chatTitle, chatDesc, isAdding);
     }
 
     /**
@@ -41,30 +73,32 @@ public class MyUserPicker extends JDialog {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
-    private void initComponents(List<String> userOpList, String chatTitle, String chatDesc) {
+    private void initComponents(List<String> userOpList, String chatTitle, String chatDesc, boolean isAdding) {
 
-        btn_ok = new javax.swing.JButton();
-        btn_cancel = new javax.swing.JButton();
-        checkBoxPanel = new javax.swing.JPanel();
+        mBtnOk = new javax.swing.JButton();
+        mBtnCancel = new javax.swing.JButton();
+        mCKPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        btn_ok.setText("OK");
-        btn_ok.addActionListener(new java.awt.event.ActionListener() {
+        mBtnOk.setText("OK");
+        mBtnOk.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-
-                GUI.getInstance().pClientCon.createNewChat(chatTitle, chatDesc, mSelUserList);
+                boolean created = GUI.getInstance().getSession().createNewChat(chatTitle, chatDesc, mSelectedList);
+                if (created) {
+                    JOptionPane.showMessageDialog(MyUserPicker.this, "Chat created");
+                } else {
+                    JOptionPane.showMessageDialog(MyUserPicker.this, "A chat with that name already exits");
+                }
                 dispose();
 
             }
         });
 
-        btn_cancel.setText("CANCEL");
-        btn_cancel.addActionListener(new java.awt.event.ActionListener() {
+        mBtnCancel.setText("CANCEL");
+        mBtnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-
                 dispose();
-                
             }
         });
 
@@ -75,66 +109,137 @@ public class MyUserPicker extends JDialog {
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(checkBoxPanel, javax.swing.GroupLayout.Alignment.TRAILING,
+                                        .addComponent(mCKPanel, javax.swing.GroupLayout.Alignment.TRAILING,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addGroup(layout.createSequentialGroup()
-                                                .addComponent(btn_cancel)
+                                                .addComponent(mBtnCancel)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
                                                         234, Short.MAX_VALUE)
-                                                .addComponent(btn_ok)))
+                                                .addComponent(mBtnOk)))
                                 .addContainerGap()));
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(checkBoxPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
+                                .addComponent(mCKPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 253, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(btn_cancel)
-                                        .addComponent(btn_ok))
+                                        .addComponent(mBtnCancel)
+                                        .addComponent(mBtnOk))
                                 .addContainerGap()));
 
-        setUserOpList(userOpList);
+        if (isAdding) {
+            addUserOpList(userOpList);
+        } else {
+            setRightUserOpList(userOpList);
+        }
 
         pack();
     }// </editor-fold>
 
-    private void setUserOpList(List<String> userList) {
+    private void addUserOpList(List<String> userList) {
         for (String iter : userList) {
             JCheckBox ckIter = new JCheckBox(iter);
-            checkBoxPanel.add(ckIter);
+
+            JComboBox comboBox = new JComboBox<>();
+            comboBox.addItem("Regular");
+            comboBox.addItem("Admin");
+
             ckIter.addActionListener(new ActionListener() {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
 
-                    String memberRef = iter + Member.SEPARATOR + "REG";
-
-                    if (ckIter.isSelected()) {
-                        mSelUserList.add(memberRef);
-                    } else {
-                        mSelUserList.remove(memberRef);
+                    String memeBerType;
+                    switch (comboBox.getSelectedIndex()) {
+                        case 0:
+                            memeBerType = "REG";
+                            break;
+                        case 1:
+                            memeBerType = "ADMIN";
+                            break;
+                        default:
+                            memeBerType = "REG";
+                            break;
                     }
 
-                    for (String string : mSelUserList) {
+                    String memberRef = iter + Member.SEPARATOR + memeBerType;
+
+                    if (ckIter.isSelected()) {
+                        mSelectedList.add(memberRef);
+                    } else {
+                        mSelectedList.remove(memberRef);
+                    }
+
+                    for (String string : mSelectedList) {
                         System.out.println("SEL" + string);
                     }
                 }
             });
+
+            mCKPanel.add(ckIter);
+            mCKPanel.add(comboBox);
+        }
+
+        validate();
+    }
+
+    private void setRightUserOpList(List<String> userList) {
+        for (String iter : userList) {
+            JCheckBox ckIter = new JCheckBox(iter);
+
+            JComboBox comboBox = new JComboBox<>();
+            comboBox.addItem("Regular");
+            comboBox.addItem("Admin");
+
+            ckIter.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+
+                    String memeBerType;
+                    switch (comboBox.getSelectedIndex()) {
+                        case 0:
+                            memeBerType = "REG";
+                            break;
+                        case 1:
+                            memeBerType = "ADMIN";
+                            break;
+                        default:
+                            memeBerType = "REG";
+                            break;
+                    }
+
+                    String memberRef = iter + Member.SEPARATOR + memeBerType;
+
+                    if (ckIter.isSelected()) {
+                        mSelectedList.add(memberRef);
+                    } else {
+                        mSelectedList.remove(memberRef);
+                    }
+
+                    for (String string : mSelectedList) {
+                        System.out.println("SEL" + string);
+                    }
+                }
+            });
+
+            mCKPanel.add(ckIter);
+            mCKPanel.add(comboBox);
         }
 
         validate();
     }
 
     // Variables declaration - do not modify
-    private javax.swing.JButton btn_cancel;
-    private javax.swing.JButton btn_ok;
-    private javax.swing.JPanel checkBoxPanel;
-    javax.swing.GroupLayout checkBoxPanelLayout;
+    private javax.swing.JButton mBtnCancel;
+    private javax.swing.JButton mBtnOk;
+    private javax.swing.JPanel mCKPanel;
     // End of variables declaration
 
     public interface IListener {
         void onOKClik(String chatTitle, String chatDesc);
     }
+
 }

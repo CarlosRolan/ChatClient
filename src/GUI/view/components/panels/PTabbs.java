@@ -1,4 +1,4 @@
-package GUI.view.panels;
+package GUI.view.components.panels;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import GUI.view.item.MyItemView.IMyItemViewListener;
+import GUI.view.components.item.ItemView.IMyItemViewListener;
 
 public class PTabbs extends JTabbedPane {
 
@@ -17,24 +17,33 @@ public class PTabbs extends JTabbedPane {
     private final String TAB_CHATS = "CHATS";
     private final String TAB_3 = "X";
 
-    private PList pUsersTab;
-    private PList pChatsTab;
-    private javax.swing.JPanel pTab3;
+    private PList mUsersTab;
+    private PList mChatsTab;
+    private javax.swing.JPanel mTab3;
+
+    /* GETTERs */
+    public PList getUsersTab() {
+        return mUsersTab;
+    }
+
+    public PList getChatsTab() {
+        return mChatsTab;
+    }
 
     public PTabbs() {
         initComponents();
     }
 
     private void initComponents() {
-        pUsersTab = new PList();
-        pChatsTab = new PList();
-        pTab3 = new javax.swing.JPanel();
+        mUsersTab = new PList();
+        mChatsTab = new PList();
+        mTab3 = new javax.swing.JPanel();
 
-        addTab(TAB_USERS, pUsersTab);
-        addTab(TAB_CHATS, pChatsTab);
+        addTab(TAB_USERS, mUsersTab);
+        addTab(TAB_CHATS, mChatsTab);
 
-        javax.swing.GroupLayout tab3Layout = new javax.swing.GroupLayout(pTab3);
-        pTab3.setLayout(tab3Layout);
+        javax.swing.GroupLayout tab3Layout = new javax.swing.GroupLayout(mTab3);
+        mTab3.setLayout(tab3Layout);
         tab3Layout.setHorizontalGroup(
                 tab3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGap(0, 337, Short.MAX_VALUE));
@@ -42,7 +51,7 @@ public class PTabbs extends JTabbedPane {
                 tab3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGap(0, 381, Short.MAX_VALUE));
 
-        addTab(TAB_3, pTab3);
+        addTab(TAB_3, mTab3);
 
         addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
@@ -65,12 +74,12 @@ public class PTabbs extends JTabbedPane {
     }
 
     public void refreshUsersTab(List<String> updatedConRefList, IMyItemViewListener itemListener) {
-        pUsersTab.refreshConList(updatedConRefList, itemListener);
+        mUsersTab.refreshList(updatedConRefList, itemListener, false);
         addNotificationOnUsersTab();
     }
 
     public void refresChatsTab(List<String> updatedChatRefList, IMyItemViewListener itemListener) {
-        pChatsTab.refreshChatList(updatedChatRefList, itemListener);
+        mChatsTab.refreshList(updatedChatRefList, itemListener, true);
         addNotificationOnChatsTab();
     }
 

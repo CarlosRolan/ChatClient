@@ -18,8 +18,8 @@ import com.controller.handlers.IPKGHandler;
 import com.data.MSG;
 import com.data.PKG;
 
-import GUI.view.MainMenu;
-import GUI.view.panels.PConv;
+import GUI.view.MainView;
+import GUI.view.components.panels.PConv;
 import controller.connection.ClientConnection;
 import controller.manager.FileManager;
 
@@ -37,13 +37,13 @@ public class GUI extends Thread implements Codes {
         return instance;
     }
 
-    public final ClientConnection pClientCon;
+    private final ClientConnection pClientCon;
     /* PROPERTIES */
 
     private List<String> mUserRefList = new ArrayList<>();
     private List<String> mChatRefList = new ArrayList<>();
     private IGUIListener iUpdate;
-    public final List<PConv> convListRef = new ArrayList<>();
+    public volatile List<PConv> convListRef = new ArrayList<>();
     private final TimerTask tupdateTask = new TimerTask() {
 
         @Override
@@ -60,6 +60,11 @@ public class GUI extends Thread implements Codes {
     };
 
     /* GETTERs */
+
+    public ClientConnection getSession() {
+        return pClientCon;
+    }
+
     public List<String> getChatRefList() {
         return mChatRefList;
     }
@@ -168,13 +173,13 @@ public class GUI extends Thread implements Codes {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainMenu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(MainView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
     }
 
@@ -186,7 +191,7 @@ public class GUI extends Thread implements Codes {
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new MainMenu().setVisible(true);
+                new MainView().setVisible(true);
             }
         });
     }
@@ -213,6 +218,10 @@ public class GUI extends Thread implements Codes {
         @Override
         public void handleRequest(MSG request) {
             switch (request.getAction()) {
+
+                case REQ_INIT_CHAT:
+                    SwingUtils.executeOnSwingThread(() -> iUpdate.addedToChat(request));
+                    break;
 
                 default:
                     System.out.println(WARN_UNREGISTERED_MSG_REQUEST_ACTION);
@@ -352,6 +361,8 @@ public class GUI extends Thread implements Codes {
     };
 
     public interface IGUIListener {
+
+        void addedToChat(MSG chatInfo);
 
         void updateUsers();
 

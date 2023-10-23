@@ -4,14 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import com.chat.Chat;
 import com.controller.Connection;
+
+import GUI.GUI;
 
 public class FileManager {
 
@@ -55,13 +54,44 @@ public class FileManager {
 
     }
 
-    public void initHistoryFile(String id, String nick) {
-        mProfileFile = new File(mUsersDir.getAbsolutePath() + "/" + nick + HISTORY_FILE);
-        try {
-            mProfileFile.createNewFile();
-        } catch (IOException e) {
+    public void initSession(String conId, String newNick) {
+        File userSessionFile = new File(mProfileFile, conId + "_" + newNick + TXT_EXT);
+
+        if (!userSessionFile.exists()) {
+            try {
+                userSessionFile.createNewFile();
+                try {
+                    FileWriter fw = new FileWriter(userSessionFile, Charset.defaultCharset(), true);
+                    String nick = GUI.getInstance().getSession().getNick();
+                    fw.append(nick + "\n");
+                    fw.flush();
+
+                    fw.close();
+
+                } catch (IOException e) {
+                    System.out.println("NO SE PUEDE GUARDAR EL ARCHIVO DE HISTORY");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Scanner myReader = null;
+
+            try {
+                myReader = new Scanner(userSessionFile);
+            } catch (FileNotFoundException e) {
+                System.out.println("PROBLEM LOAD CONV HISTORY");
+            }
+
+            while (myReader.hasNextLine()) {
+                String line = myReader.nextLine();
+
+            }
+
+            myReader.close();
 
         }
+
     }
 
     public boolean initConvHistory(String convTitle, boolean isChat) {
@@ -137,76 +167,6 @@ public class FileManager {
         myReader.close();
 
         return history;
-
-    }
-
-    public void saveHistory(String nick, String timeData, String newLine) {
-
-        FileWriter fw = null;
-        try {
-            fw = new FileWriter(mProfileFile, Charset.defaultCharset(), true);
-
-            fw.append("[" + timeData + "]" + nick + ":" + newLine + "\n");
-            fw.flush();
-
-            fw.close();
-
-        } catch (IOException e) {
-            System.out.println("NO SE PUEDE CREAR EL ARCHIVO DE HISTORY");
-        }
-
-    }
-
-    public ArrayList<String> loadHistory() {
-        ArrayList<String> history = new ArrayList<>();
-        Scanner myReader = null;
-        try {
-            myReader = new Scanner(mProfileFile);
-        } catch (FileNotFoundException e) {
-            System.out.println("PROBLEM LOAD CHAT RAW");
-        }
-
-        while (myReader.hasNextLine()) {
-            String line = myReader.nextLine();
-            history.add(line);
-        }
-
-        myReader.close();
-
-        return history;
-    }
-
-    public String loadChatsRaw() {
-        String rawData = "";
-        Scanner myReader = null;
-        try {
-            myReader = new Scanner(new File(""));
-        } catch (FileNotFoundException e) {
-            System.out.println("PROBLEM LOAD CHAT RAW");
-        }
-
-        while (myReader.hasNextLine()) {
-            String line = myReader.nextLine();
-            rawData += line;
-        }
-
-        myReader.close();
-
-        return rawData;
-    }
-
-    public void saveChatRaw(Chat chat) {
-        File chatInfo = initChatDir(chat.getTitle());
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(chatInfo,
-                    "UTF-8");
-        } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            System.out.println("PROBLEM SAVING CHAT ON LOCAL");
-        }
-        writer.println(chat.toXML());
-
-        writer.close();
 
     }
 

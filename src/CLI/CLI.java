@@ -15,7 +15,6 @@ import com.data.PKG;
 
 import api.ClientAPI;
 import controller.connection.ClientConnection;
-import controller.manager.FileManager;
 
 public class CLI extends Thread implements Codes, CLIActions {
 
@@ -45,7 +44,7 @@ public class CLI extends Thread implements Codes, CLIActions {
     private Chat pCurrentChat = null;
 
     /* GETTERS */
-    public Connection getConnection() {
+    public Connection getSession() {
         return pClientCon;
     }
 
@@ -53,10 +52,14 @@ public class CLI extends Thread implements Codes, CLIActions {
         return pCurrentChat;
     }
 
+    public boolean checkState(ConsoleState state) {
+        return ConsoleState.get() == state;
+    }
+
     /* CONSTRUCTOR */
     private CLI() {
         System.out.println(IN_SET_NICK);
-        pClientCon = new ClientConnection(sc.nextLine(), IMSGHandler, IPKGhandler);
+        pClientCon = new ClientConnection(sc.nextLine(), IMSG_HANDLER, IPKG_HANDLER);
     }
 
     public void startConsoleSesion() throws SocketException, IOException {
@@ -84,6 +87,11 @@ public class CLI extends Thread implements Codes, CLIActions {
                 selectInChatAction();
                 break;
 
+            case WAITING:
+                clearConsole();
+                System.out.println(CLIActions.MENU_WAITING);
+                break;
+
             default:
                 break;
         }
@@ -100,8 +108,13 @@ public class CLI extends Thread implements Codes, CLIActions {
                 break;
             // Start Single-Chat (1v1)
             case OP_2:
-                msgOut = ClientAPI.newRequest().askForSingleReq(pClientCon.getConId(), selectUser(),
-                        pClientCon.getNick());
+                String idUserSelected = selectUser();
+                if (idUserSelected != pClientCon.getConId()) {
+                    msgOut = ClientAPI.newRequest().askForSingleReq(pClientCon.getConId(), idUserSelected,
+                            pClientCon.getNick());
+                    ConsoleState.get().change(ConsoleState.WAITING);
+                }
+
                 break;
             // Start Chats Menu
             case OP_3:
@@ -155,6 +168,7 @@ public class CLI extends Thread implements Codes, CLIActions {
                 pClientCon.write(
                         ClientAPI.newRequest().selectChatReq(selectChatById(), pClientCon.getConId(),
                                 pClientCon.getNumChats()));
+
                 break;
             // Create Chat
             case OP_2:
@@ -163,7 +177,14 @@ public class CLI extends Thread implements Codes, CLIActions {
                 String chatTitle = sc.nextLine();
                 System.out.println(IN_SET_CHAT_DESC);
                 String chatDesc = sc.nextLine();
-                pClientCon.createNewChat(chatTitle, chatDesc, null);
+
+                boolean created = pClientCon.createNewChat(chatTitle, chatDesc, null);
+
+                if (created) {
+                    System.out.println("Chat created");
+                } else {
+                    System.err.println("A chat with that name already exits");
+                }
                 break;
             // Delete Chat
             case OP_3:
@@ -189,7 +210,7 @@ public class CLI extends Thread implements Codes, CLIActions {
         switch (sc.nextLine()) {
             // Send MSG to Chat
             case OP_1:
-                //pClientCon.sendToChat(pCurrentChat, sc.nextLine());
+                // pClientCon.sendToChat(pCurrentChat, sc.nextLine());
                 break;
             // Manage Chat
             case OP_2:
@@ -206,7 +227,9 @@ public class CLI extends Thread implements Codes, CLIActions {
             // Delete Members
             case OP_5:
                 if (pCurrentChat.getMember(pClientCon.getConId()).isAdmin()) {
-                    pClientCon.deleteChat(pCurrentChat);
+                    pClientCon.deleteChat(pCurrentChat.getChatId());
+                } else {
+                    System.out.println("U are not admin");
                 }
                 break;
             // Manage Permissions
@@ -238,7 +261,6 @@ public class CLI extends Thread implements Codes, CLIActions {
         int chatId;
         do {
             System.out.println(IN_SELECT_CHAT);
-            pClientCon.write(ClientAPI.newRequest().showAllYourChatsReq(pClientCon.getConId()));
             try {
                 chatId = Integer.parseInt(sc.nextLine());
             } catch (InputMismatchException | NumberFormatException e) {
@@ -271,7 +293,7 @@ public class CLI extends Thread implements Codes, CLIActions {
 
     /* IMPLEMENTATIONS */
     // MSG
-    private final IMSGHandler IMSGHandler = new IMSGHandler() {
+    private final IMSGHandler IMSG_HANDLER = new IMSGHandler() {
 
         @Override
         public void handleRequest(MSG respondReq) {
@@ -290,6 +312,11 @@ public class CLI extends Thread implements Codes, CLIActions {
                     System.out.println(respondReq.showParameters());
                     break;
 
+                case REQ_DENY:
+                    ConsoleState.get().change(ConsoleState.MAIN);
+                    clearConsole();
+                    break;
+
                 case REQ_ASKED_FOR_PERMISSION:
                     pSincleNick = respondReq.getParameter(0);
                     pSingleID = respondReq.getEmisor();
@@ -299,6 +326,8 @@ public class CLI extends Thread implements Codes, CLIActions {
                     break;
 
                 case REQ_WAITING_FOR_PERMISSION:
+                    ConsoleState.get().change(ConsoleState.WAITING);
+                    clearConsole();
                     System.out.println(respondReq.getParameter(0) + _PENDING_TO_ACCEPT);
                     break;
 
@@ -323,7 +352,6 @@ public class CLI extends Thread implements Codes, CLIActions {
                     pClientCon.oneMoreChat();
                     pCurrentChat = Chat.instanceChat(respondReq);
                     ConsoleState.get().change(ConsoleState.CHAT);
-                    FileManager.getInstance().saveChatRaw(pCurrentChat);
                     if (pCurrentChat == null)
                         ConsoleState.get().change(ConsoleState.MAIN);
                     break;
@@ -341,13 +369,14 @@ public class CLI extends Thread implements Codes, CLIActions {
             switch (respondMSG.getAction()) {
 
                 case MSG_FROM_SINGLE:
-                    System.out.println("\t\t[" + getCurrentTime() + "]" + pSincleNick + ": " + respondMSG.getBody());
+                    if (checkState(ConsoleState.SINGLE)) {
+                        System.out.println("\t\t" + respondMSG.getBody());
+                    }
                     break;
 
                 case MSG_FROM_CHAT:
-                    if (ConsoleState.get() == ConsoleState.CHAT) {
-                        System.out.println("********[" + getCurrentTime() + "]" + respondMSG.getParameter(0) + ": "
-                                + respondMSG.getBody());
+                    if (checkState(ConsoleState.CHAT)) {
+                        System.out.println("********" + respondMSG.getBody());
                     }
                     break;
 
@@ -390,7 +419,7 @@ public class CLI extends Thread implements Codes, CLIActions {
     };
 
     // PKG
-    private final IPKGHandler IPKGhandler = new IPKGHandler() {
+    private final IPKGHandler IPKG_HANDLER = new IPKGHandler() {
 
         @Override
         public void handleMixed(PKG mixed) {

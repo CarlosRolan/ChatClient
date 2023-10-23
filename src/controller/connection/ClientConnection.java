@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import com.chat.Chat;
 import com.chat.Member;
 import com.controller.Connection;
@@ -141,10 +139,10 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void deleteChat(Chat deletedChat) throws SocketException, IOException {
+    public void deleteChat(String chatId) throws SocketException, IOException {
         write(ClientAPI.newRequest().exitChatReq(
                 getConId(),
-                deletedChat.getChatId()));
+                chatId));
     }
 
     /**
@@ -173,7 +171,7 @@ public class ClientConnection extends Connection implements Env {
                 memberId));
     }
 
-    public void createNewChat(String chatTitle, String chatDec, List<String> membersToAddList) {
+    public boolean createNewChat(String chatTitle, String chatDec, List<String> membersToAddList) {
 
         if (FileManager.getInstance().initConvHistory(chatTitle, true)) {
             String[] memberRefs;
@@ -195,9 +193,9 @@ public class ClientConnection extends Connection implements Env {
                 }
             }
 
-            //TODO unhandled exceptions
+            // TODO unhandled exceptions
             try {
-                GUI.getInstance().pClientCon
+                GUI.getInstance().getSession()
                         .write(ClientAPI.newRequest().createNewChatReq(chatTitle, chatDec, memberRefs, getNumChats()));
             } catch (SocketException e) {
                 e.printStackTrace();
@@ -206,9 +204,11 @@ public class ClientConnection extends Connection implements Env {
             }
 
             oneMoreChat();
-            JOptionPane.showMessageDialog(null, "Chat created");
+
+            return true;
         } else {
-            JOptionPane.showMessageDialog(null, "A chat with that name already exits");
+
+            return false;
         }
 
     }
@@ -218,6 +218,10 @@ public class ClientConnection extends Connection implements Env {
         LocalDateTime now = LocalDateTime.now();
 
         write(ClientAPI.newRequest().updateStateReq(getConId(), dtf.format(now)));
+    }
+
+    public void editMemberRights(Chat editingChat, List<String> memberRefUpdated) {
+
     }
 
     /* RESPONDS */

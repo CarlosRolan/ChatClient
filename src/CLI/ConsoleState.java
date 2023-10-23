@@ -6,7 +6,8 @@ public enum ConsoleState implements CLIActions {
     SINGLE,
     CHAT_MENU,
     CHAT,
-    CHAT_SETTINGS;
+    CHAT_SETTINGS,
+    WAITING;
 
     private static ConsoleState instance = MAIN;
 
@@ -15,7 +16,7 @@ public enum ConsoleState implements CLIActions {
     }
 
     public void change(final ConsoleState newState) {
-        System.out.println(CLI_CLEAR_CONSOLE);
+        clearConsole();
         switch (newState) {
             case MAIN:
                 instance = MAIN;
@@ -28,6 +29,9 @@ public enum ConsoleState implements CLIActions {
                 break;
             case CHAT:
                 instance = CHAT;
+                break;
+            case WAITING:
+                instance = WAITING;
                 break;
             default:
                 instance = MAIN;

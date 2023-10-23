@@ -87,6 +87,8 @@ public interface CLIActions {
     final String MENU_CHAT_6 = "*\t6.Manage Permissions";
     final String MENU_CHAT_EXIT = "\t0.Exit Chat";
 
+    final String MENU_WAITING = "Waiting";
+
     /* FEDDBACK */
     final String _PENDING_TO_ACCEPT = " pending to accept";
     final String _ACCEPTS_THE_INVITATION = " accepts the invitation";
@@ -167,5 +169,9 @@ public interface CLIActions {
                 break;
         }
         System.out.print(ansiCode);
+    }
+
+    default void clearConsole() {
+        System.out.println(CLI_CLEAR_CONSOLE);
     }
 }

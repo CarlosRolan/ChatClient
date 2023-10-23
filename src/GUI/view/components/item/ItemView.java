@@ -1,13 +1,22 @@
-package GUI.view.item;
+package GUI.view.components.item;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.net.SocketException;
 
 import javax.swing.BorderFactory;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.border.Border;
 
 import com.chat.Chat;
+import com.chat.Member;
+
+import GUI.GUI;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -19,46 +28,80 @@ import com.chat.Chat;
  * @author carlos
  */
 
-public class MyItemView extends javax.swing.JPanel {
+public class ItemView extends javax.swing.JPanel {
+
+	/* STATIC */
+
+	public static ItemView createItem(String reference, IMyItemViewListener listener, boolean isChat) {
+		return new ItemView(reference, listener, isChat);
+	}
 
 	private Border hover = BorderFactory.createLineBorder(Color.DARK_GRAY);
 
 	private final IMyItemViewListener iMyItemViewListener;
 
+	private String mReference;
+
 	private final String mId;
 	private String mTitle;
 	private String mSubTitle;
-	private boolean mChat;
+
 	private int unreadMsgs;
 
-	public static MyItemView createItemView(String id, String nick, String bio, IMyItemViewListener listener) {
-		return new MyItemView(id, nick, bio, listener, false);
+	// if is chat
+	private boolean mChat;
+	private boolean admin;
+
+	/* GETTERs */
+	public String getItemId() {
+		return mId;
 	}
 
-	public static MyItemView createItemView(Chat chat, IMyItemViewListener listener) {
-		String itemId = chat.getChatId();
-		String itemTitle = chat.getTitle();
-		String itemSubTitle = chat.getDescription();
-		return new MyItemView(itemId, itemTitle, itemSubTitle, listener, true);
-
+	public String getTitle() {
+		return mTitle;
 	}
 
-	public void hasNewMsg() {
+	public String getSubTitle() {
+		return mSubTitle;
+	}
+
+	/* SETTERs */
+
+	public void oneMoreMsg() {
 		unreadMsgs++;
-		mLabel2.setText(String.valueOf(unreadMsgs));
+		mLabel2.setText(String.valueOf(unreadMsgs) + "! ");
+		mLabel2.setBackground(Color.GREEN);
+		mLabel2.setVisible(true);
+
+	}
+
+	public void msgsChecked() {
+		unreadMsgs = 0;
+		mLabel2.setVisible(false);
 	}
 
 	/**
 	 * Creates new form Conversation
 	 */
-	private MyItemView(String itemId, String itemTitle, String itemSubitle, IMyItemViewListener listener,
-			boolean isChat) {
+	private ItemView(String reference, IMyItemViewListener listener, boolean isChat) {
+
+		if (isChat) {
+			mChat = true;
+			Chat chat = Chat.initChat(reference);
+			mId = chat.getChatId();
+			mTitle = chat.getTitle();
+			mSubTitle = chat.getDescription();
+		} else {
+			String[] data;
+			data = reference.split(Member.SEPARATOR);
+			mId = data[0];
+			mTitle = data[1];
+			mSubTitle = "bio";
+			mChat = false;
+		}
+
 		iMyItemViewListener = listener;
-		mId = itemId;
-		mChat = isChat;
-		mTitle = itemTitle;
-		mSubTitle = itemSubitle;
-		unreadMsgs = 0;
+		mReference = reference;
 		initComponents();
 	}
 
@@ -75,6 +118,12 @@ public class MyItemView extends javax.swing.JPanel {
 		mLabel0 = new javax.swing.JLabel();
 		mLabel1 = new javax.swing.JLabel();
 		mLabel2 = new javax.swing.JLabel();
+		mLabel2.setBackground(Color.GREEN);
+		mLabel2.setVisible(false);
+
+		initPopUpMenu();
+
+		setComponentPopupMenu(mPopupMenu);
 
 		setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
@@ -129,7 +178,62 @@ public class MyItemView extends javax.swing.JPanel {
 	private javax.swing.JLabel mLabel0;
 	private javax.swing.JLabel mLabel1;
 	private javax.swing.JLabel mLabel2;
+	private javax.swing.JPopupMenu mPopupMenu;
 	// End of variables declaration
+
+	private void initPopUpMenu() {
+		mPopupMenu = new JPopupMenu();
+
+		// as chat and as single
+		JMenuItem iShowInfo = new JMenuItem("Show info");
+		iShowInfo.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println(mReference);
+			}
+
+		});
+
+		mPopupMenu.add(iShowInfo);
+
+		if (mChat) {
+			// leave chat as admin or regular
+			JMenuItem iLeaveChat = new JMenuItem("Leave chat");
+			iLeaveChat.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+
+				}
+
+			});
+
+			if (admin) {
+				JMenuItem iDeleteChat = new JMenuItem("Delete Chat");
+				iDeleteChat.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						try {
+							GUI.getInstance().getSession().deleteChat(mId);
+						} catch (SocketException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+
+				});
+				mPopupMenu.add(iDeleteChat);
+			}
+
+			mPopupMenu.add(iLeaveChat);
+
+		}
+	}
 
 	/* IMPLEMENTATIONs */
 
@@ -137,14 +241,17 @@ public class MyItemView extends javax.swing.JPanel {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-
-			unreadMsgs = 0;
-			mLabel2.setText(String.valueOf(unreadMsgs));
-
 			System.out.println("Btn clicked " + e.getButton());
 			switch (e.getButton()) {
 				case MouseEvent.BUTTON1:
-					iMyItemViewListener.onItemRightClick(mId, mTitle, mSubTitle, mChat);
+					msgsChecked();
+					if (mChat) {
+						Chat chat = Chat.initChat(mReference);
+						iMyItemViewListener.onRightClick(chat);
+					} else {
+						iMyItemViewListener.onRightClick(mId, mTitle, mSubTitle);
+					}
+
 					break;
 
 				case MouseEvent.BUTTON2:
@@ -177,8 +284,12 @@ public class MyItemView extends javax.swing.JPanel {
 	};
 
 	public interface IMyItemViewListener {
-		void onItemRightClick(String iId, String iTitle, String iSubtitle, boolean isChat);
-		void onNewMsg(); 
+
+		void onRightClick(String iId, String iTitle, String iSubtitle);
+
+		void onRightClick(Chat chat);
+
+		void onNewMsg(String id, boolean isCHat);
 	}
 
 }

@@ -16,10 +16,10 @@ public class MyTreeView extends JTree {
     public static String MSG_NOTIFICATION = "(!)";
     public final static char MSG_ALERT_NUM = MSG_NOTIFICATION.charAt(1);
 
-    private static DefaultMutableTreeNode root = new DefaultMutableTreeNode("");
+    private static final DefaultMutableTreeNode ROOT_NODE = new DefaultMutableTreeNode("");
 
-    private DefaultMutableTreeNode chatsNode = new DefaultMutableTreeNode("Chats");
-    private DefaultMutableTreeNode usersNode = new DefaultMutableTreeNode("Users");
+    private DefaultMutableTreeNode mChatsNode = new DefaultMutableTreeNode("Chats");
+    private DefaultMutableTreeNode mUsersNode = new DefaultMutableTreeNode("Users");
 
     private final List<String> mTreeConList;
     private final List<String> mTreeChatList;
@@ -35,7 +35,7 @@ public class MyTreeView extends JTree {
     }
 
     public MyTreeView(ITreeViewListener eventsListener) {
-        super(root);
+        super(ROOT_NODE);
         iTreeListener = eventsListener;
         mTreeConList = new ArrayList<>();
         mTreeChatList = new ArrayList<>();
@@ -44,8 +44,8 @@ public class MyTreeView extends JTree {
 
     public void initMyTreeView() {
 
-        root.add(chatsNode);
-        root.add(usersNode);
+        ROOT_NODE.add(mChatsNode);
+        ROOT_NODE.add(mUsersNode);
 
         setRootVisible(false);
 
@@ -55,15 +55,15 @@ public class MyTreeView extends JTree {
     }
 
     public void refreshTreeView() {
-        chatsNode.removeAllChildren();
-        usersNode.removeAllChildren();
+        mChatsNode.removeAllChildren();
+        mUsersNode.removeAllChildren();
 
         int i = 0;
 
         for (String chatRef : mTreeChatList) {
             System.out.println("CHAT_REF[" + i + "]" + chatRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(chatRef, editable);
-            chatsNode.add(node);
+            mChatsNode.add(node);
             i++;
         }
 
@@ -72,16 +72,16 @@ public class MyTreeView extends JTree {
         for (String conRef : mTreeConList) {
             System.out.println("CON_REF[" + i + "]" + conRef);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(conRef, editable);
-            usersNode.add(node);
+            mUsersNode.add(node);
             i++;
         }
 
         DefaultTreeModel model = (DefaultTreeModel) getModel();
 
-        model.insertNodeInto(chatsNode, root, root.getChildCount() - 2);
-        model.insertNodeInto(usersNode, root, root.getChildCount() - 1);
+        model.insertNodeInto(mChatsNode, ROOT_NODE, ROOT_NODE.getChildCount() - 2);
+        model.insertNodeInto(mUsersNode, ROOT_NODE, ROOT_NODE.getChildCount() - 1);
 
-        model.reload(root);
+        model.reload(ROOT_NODE);
 
         expandRow(0);
         expandRow(getRowCount() - 1);
