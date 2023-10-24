@@ -1,5 +1,7 @@
 package api;
 
+import java.util.List;
+
 import com.api.Codes;
 import com.data.MSG;
 
@@ -330,6 +332,22 @@ public class ClientAPI implements Codes {
         updateState.setBody(curretnTime);
 
         return updateState;
+    }
+
+    public MSG updateChatTitleReq(String chatId, String newTitle) {
+        msgOut = new MSG(MSG.Type.REQUEST);
+
+        msgOut.setAction(Codes.REQ_UPDATE_CHAT);
+        return msgOut;
+
+    }
+
+    public MSG updateChatDescReq(String chatId, String newDesc) {
+        return msgOut;
+    }
+
+    public MSG MSG(String chatId, List<String> updatedMembers) {
+        return msgOut;
     }
 
 }

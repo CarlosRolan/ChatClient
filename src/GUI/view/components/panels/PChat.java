@@ -7,8 +7,11 @@ import controller.manager.FileManager;
 
 public class PChat extends PConv {
 
+    private Chat mChat;
+
     protected PChat(Chat chat, IConvListener listener) {
 
+        mChat = chat;
         String convId = chat.getChatId();
         String convTitle = chat.getTitle();
         String convSubTitle = chat.getDescription();

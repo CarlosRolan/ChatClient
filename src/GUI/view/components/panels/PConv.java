@@ -233,6 +233,8 @@ public abstract class PConv extends javax.swing.JPanel {
 
 	public static class MenuConv extends JMenuBar {
 
+		private static final PChat PConv = null;
+
 		private final String ITEM_0 = "Show info";
 
 		private final String ITEM_1 = "Leave chat";
@@ -240,53 +242,83 @@ public abstract class PConv extends javax.swing.JPanel {
 		private final String ITEM_2 = "Settings";
 
 		private final String ITEM_ADMIN_2_0 = "Manage users";
-		private final String ITEM_ADMIN_2_0_0 = "Rights";
+		private final String ITEM_ADMIN_2_0_0 = "Edit Rights";
 		private final String ITEM_ADMIN_2_0_1 = "Add members";
 		private final String ITEM_ADMIN_2_0_2 = "Delete members";
 		private final String ITEM_ADMIN_2_1 = "Edit Bio";
 		private final String ITEM_ADMIN_2_2 = "Edit Tittle";
 		private final String ITEM_ADMIN_2_3 = "Delete chat";
 
-		private boolean admin;
-
-		public MenuConv(boolean isAdmin, boolean isChat) {
-			admin = isAdmin;
-			initComponents(isAdmin, isChat);
+		public MenuConv(PConv instance) {
+			if (instance instanceof PChat) {
+				initComponents((PChat) instance);
+			} else if (instance instanceof PSingle) {
+				initComponents((PSingle) instance);
+			}
 		}
 
-		private void initComponents(boolean isAdmin, boolean isChat) {
-			initItems(isAdmin, isChat);
-		}
-
-		private void initItems(boolean isAdmin, boolean isChat) {
+		private void initComponents(PChat instance) {
 			JMenuItem item0 = new JMenuItem(ITEM_0);
+			add(item0);
+
 			JMenuItem item1 = new JMenuItem(ITEM_1);
+			add(item1);
+
+			initAdmintItems(instance.hasAdminRights());
+		}
+
+		private void initComponents(PSingle instance) {
+			JMenuItem item0 = new JMenuItem(ITEM_0);
+			add(item0);
+			JMenuItem item1 = new JMenuItem(ITEM_1);
+			add(item1);
+		}
+
+		private void initAdmintItems(boolean isAdmin) {
+
 			JMenu item2 = new JMenu();
 			item2.setText(ITEM_2);
-			if (admin) {
-
+			if (isAdmin) {
 				JMenu manageUsers = new JMenu(ITEM_ADMIN_2_0);
 				JMenuItem manageRights = new JMenuItem(ITEM_ADMIN_2_0_0);
 				manageRights.addActionListener(new ActionListener() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						// TODO edit rights
+					}
 
+				});
+				JMenuItem addMembers = new JMenuItem(ITEM_ADMIN_2_0_1);
+				addMembers.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// TODO Add member to chat
+					}
+
+				});
+
+				JMenuItem deleteMembers = new JMenuItem(ITEM_ADMIN_2_0_2);
+				deleteMembers.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// TODO Auto-generated method stub
+						throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
 					}
 
 				});
 				manageUsers.add(manageRights);
+				manageUsers.add(addMembers);
+				manageUsers.add(deleteMembers);
 
 				item2.add(manageUsers);
 
 				item2.add(new JMenuItem(ITEM_ADMIN_2_1));
 				item2.add(new JMenuItem(ITEM_ADMIN_2_2));
 				item2.add(new JMenuItem(ITEM_ADMIN_2_3));
-			}
-			this.add(item0);
-			if (isChat) {
-				this.add(item1);
-				this.add(item2);
+				add(item2);
 			}
 
 		}

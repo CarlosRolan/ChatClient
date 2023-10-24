@@ -224,6 +224,12 @@ public class ClientConnection extends Connection implements Env {
 
     }
 
+    public void editChatTitle(Chat current, String updatedTitle) {
+        current.setTitle(updatedTitle);
+
+     
+    }
+
     /* RESPONDS */
     /* OVERRIDE */
 }

@@ -6,8 +6,10 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 
+import GUI.view.components.panels.PChat;
 import GUI.view.components.panels.PConv;
-import GUI.view.components.panels.PConv.MenuConv;;
+import GUI.view.components.panels.PConv.MenuConv;
+import GUI.view.components.panels.PSingle;;
 
 public class ConversationView extends JFrame {
 
@@ -47,7 +49,15 @@ public class ConversationView extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents(PConv conversationPanel) {
 
-        mMenuBar = new MenuConv(conversationPanel.hasAdminRights(), conversationPanel.isChat());
+        if (conversationPanel instanceof PChat) {
+            System.out.println("Instance of PCHAT");
+        } else if (conversationPanel instanceof PSingle) {
+            System.out.println("Instance of PSINGLE");
+        } else {
+            System.out.println("Instance of PConv");
+        }
+
+        mMenuBar = new MenuConv(conversationPanel);
 
         if (conversationPanel.isChat()) {
             if (conversationPanel.hasAdminRights()) {

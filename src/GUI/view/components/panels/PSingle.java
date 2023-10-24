@@ -7,8 +7,6 @@ public class PSingle extends PConv {
 
     protected PSingle(String convId, String convTitle, String convSubTitle, IConvListener listener) {
         iConvListener = listener;
-        mIsChat = false;
-        mAdmin = false;
         mId = convId;
         mTitle = convTitle;
         mSubTitle = convSubTitle;
