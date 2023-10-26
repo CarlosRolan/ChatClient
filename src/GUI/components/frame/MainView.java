@@ -13,6 +13,7 @@ import com.data.MSG;
 
 import GUI.GUI;
 import GUI.GUI.IGUIListener;
+import GUI.components.MyDialog;
 import GUI.components.MyTreeView;
 import GUI.components.MyTreeView.ITreeViewListener;
 import GUI.components.item.ItemView;
@@ -323,6 +324,11 @@ public class MainView extends JFrame {
 						case JOptionPane.OK_OPTION:
 							// Por lo que diojo MArio
 							List<String> tempConRefs = GUI.getInstance().getUserRefList();
+							Chat candidateChat = new Chat(GUI.getInstance().getSession().getConId(),
+									GUI.getInstance().getSession().getNumChats(), newChatTitle, newChatDesc);
+
+							MyDialog.selectUsers(mWeakReference.get(), true, candidateChat, tempConRefs)
+									.setVisible(true);
 
 							// IMPORTANT Notice that the picker is a modal Jdialog and no a Jframe in a
 							// diferent Thread

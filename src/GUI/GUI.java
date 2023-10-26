@@ -153,6 +153,10 @@ public class GUI extends Thread implements Codes {
         SwingUtils.executeOnSwingThread(() -> iUpdate.updateChats());
     }
 
+    public void createChat(Chat candidate) {
+        
+    }
+
     public void setUpdateListener(IGUIListener listener) {
         iUpdate = listener;
     }

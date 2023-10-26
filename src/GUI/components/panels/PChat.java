@@ -22,7 +22,7 @@ public class PChat extends PConv {
         return mAdmin;
     }
 
-    PChat(Chat chat, IConvListener listener) {
+    public PChat(Chat chat, IConvListener listener) {
         mChat = chat;
         String convId = chat.getChatId();
         String convTitle = chat.getTitle();
