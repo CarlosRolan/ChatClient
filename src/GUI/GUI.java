@@ -18,8 +18,8 @@ import com.controller.handlers.IPKGHandler;
 import com.data.MSG;
 import com.data.PKG;
 
-import GUI.view.MainView;
-import GUI.view.components.panels.PConv;
+import GUI.components.frame.MainView;
+import GUI.components.panels.PConv;
 import controller.connection.ClientConnection;
 import controller.manager.FileManager;
 
@@ -40,10 +40,10 @@ public class GUI extends Thread implements Codes {
     private final ClientConnection pClientCon;
     /* PROPERTIES */
 
-    private List<String> mUserRefList = new ArrayList<>();
-    private List<String> mChatRefList = new ArrayList<>();
+    private volatile List<String> mUserRefList = new ArrayList<>();
+    private volatile List<String> mChatRefList = new ArrayList<>();
     private IGUIListener iUpdate;
-    public volatile List<PConv> convListRef = new ArrayList<>();
+    private volatile List<PConv> mConvListRef = new ArrayList<>();
     private final TimerTask tupdateTask = new TimerTask() {
 
         @Override
@@ -73,6 +73,36 @@ public class GUI extends Thread implements Codes {
         return mUserRefList;
     }
 
+    public List<PConv> getPConvList() {
+        return mConvListRef;
+    }
+
+    public Chat getChatFromId(String chatId) {
+        for (String iRef : mChatRefList) {
+            Chat iter = Chat.init(iRef);
+            if (iter.getChatId().equals(chatId)) {
+                return iter;
+            }
+        }
+
+        return null;
+    }
+
+    public Chat getChatFromRef(String reference) {
+        int i = getChatRefList().indexOf(reference);
+        return Chat.init(getChatRefList().get(i));
+    }
+
+    public PConv getPanelInstance(String convPanelId) {
+        for (PConv iConv : mConvListRef) {
+            if (convPanelId.equals(iConv.getConvId())) {
+                return iConv;
+            }
+        }
+        System.out.println("INSTANCE NOT FOUND");
+        return null;
+    }
+
     /* SETTERs */
     public void addChatRef(String chatRef) {
         mChatRefList.add(chatRef);
@@ -89,41 +119,53 @@ public class GUI extends Thread implements Codes {
 
     }
 
+    public void updatePConv(PConv updated) {
+        int index = getPConvList().indexOf(updated);
+        getPConvList().set(index, updated);
+    }
+
+    public void updateChat(Chat updated) {
+        String chatId = updated.getChatId();
+        Chat oldChat = getChatFromId(chatId);
+        int index = getChatRefList().indexOf(oldChat.getReference());
+
+        getChatRefList().set(index, updated.getReference());
+
+        PConv updatedInstance = getPanelInstance(chatId);
+
+        updatePConv(updatedInstance);
+
+        SwingUtils.executeOnSwingThread(() -> iUpdate.updateChats());
+
+        getSession().sendChatUpdated(updated);
+    }
+
     public void addPanelInstance(PConv convPanel) {
-        convListRef.add(convPanel);
+        mConvListRef.add(convPanel);
     }
 
     public void removePanelInstance(PConv convPanel) {
-        convListRef.remove(convPanel);
+        mConvListRef.remove(convPanel);
     }
 
-    public PConv getPanelInstance(String convPanelId) {
-        for (PConv iConv : convListRef) {
-            if (convPanelId.equals(iConv.getConvId())) {
-                return iConv;
-            }
-        }
-        System.out.println("INSTANCE NOT FOUND");
-        return null;
+    public void deleteChat(Chat deleted) {
+        getChatRefList().remove(deleted.getReference());
+        SwingUtils.executeOnSwingThread(() -> iUpdate.updateChats());
     }
 
-    public Chat getChatFromId(String chatId) {
-        for (String iRef : mChatRefList) {
-            Chat iter = Chat.initChat(iRef);
-            if (iter.getChatId().equals(chatId)) {
-                return iter;
-            }
-        }
-
-        return null;
+    public void setUpdateListener(IGUIListener listener) {
+        iUpdate = listener;
     }
 
-    public boolean usersHasUpdate(List<String> updatedUserRefList) {
-        if (updatedUserRefList.size() != mUserRefList.size())
+    /* PUBLIC */
+
+    /* PRIVATE */
+    private boolean usersHasUpdate(List<String> updatedUserRefList) {
+        if (updatedUserRefList.size() != getUserRefList().size())
             return true;
 
         for (String iUpdatedUserRef : updatedUserRefList) {
-            if (!mUserRefList.contains(iUpdatedUserRef))
+            if (!getUserRefList().contains(iUpdatedUserRef))
                 return true;
         }
 
@@ -132,19 +174,15 @@ public class GUI extends Thread implements Codes {
 
     public boolean chatsHasUpdate(List<String> updatedChatRefList) {
 
-        if (updatedChatRefList.size() != mChatRefList.size())
+        if (updatedChatRefList.size() != getChatRefList().size())
             return true;
 
         for (String iUpdatedRef : updatedChatRefList) {
-            if (!mChatRefList.contains(iUpdatedRef))
+            if (!getChatRefList().contains(iUpdatedRef))
                 return true;
         }
 
         return false;
-    }
-
-    public void setUpdateListener(IGUIListener listener) {
-        iUpdate = listener;
     }
 
     /* CONSTRUCTOR */
@@ -336,12 +374,10 @@ public class GUI extends Thread implements Codes {
                         mUserRefList = updatedUserRefList;
                         SwingUtils.executeOnSwingThread(() -> iUpdate.updateUsers());
                     }
-
                     if (chatsHasUpdate(updatedChatRefList)) {
                         mChatRefList = null;
                         mChatRefList = updatedChatRefList;
                         SwingUtils.executeOnSwingThread(() -> iUpdate.updateChats());
-
                     }
 
                     break;

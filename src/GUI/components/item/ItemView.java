@@ -1,22 +1,19 @@
-package GUI.view.components.item;
+package GUI.components.item;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.IOException;
-import java.net.SocketException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.border.Border;
 
 import com.chat.Chat;
 import com.chat.Member;
-
-import GUI.GUI;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -28,7 +25,7 @@ import GUI.GUI;
  * @author carlos
  */
 
-public class ItemView extends javax.swing.JPanel {
+public class ItemView extends JPanel {
 
 	/* STATIC */
 
@@ -87,7 +84,7 @@ public class ItemView extends javax.swing.JPanel {
 
 		if (isChat) {
 			mChat = true;
-			Chat chat = Chat.initChat(reference);
+			Chat chat = Chat.init(reference);
 			mId = chat.getChatId();
 			mTitle = chat.getTitle();
 			mSubTitle = chat.getDescription();
@@ -215,15 +212,7 @@ public class ItemView extends javax.swing.JPanel {
 
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
-						try {
-							GUI.getInstance().getSession().deleteChat(mId);
-						} catch (SocketException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+
 					}
 
 				});
@@ -246,7 +235,7 @@ public class ItemView extends javax.swing.JPanel {
 				case MouseEvent.BUTTON1:
 					msgsChecked();
 					if (mChat) {
-						Chat chat = Chat.initChat(mReference);
+						Chat chat = Chat.init(mReference);
 						iMyItemViewListener.onRightClick(chat);
 					} else {
 						iMyItemViewListener.onRightClick(mId, mTitle, mSubTitle);

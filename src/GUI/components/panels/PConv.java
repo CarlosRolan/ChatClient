@@ -3,10 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 
-package GUI.view.components.panels;
+package GUI.components.panels;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.time.LocalDateTime;
@@ -14,15 +12,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 
 import com.chat.Chat;
 import com.data.MSG;
 
 import GUI.GUI;
-import controller.manager.FileManager;
 
 /**
  *
@@ -30,7 +24,7 @@ import controller.manager.FileManager;
  */
 public abstract class PConv extends javax.swing.JPanel {
 
-	public enum Type {
+	protected enum Type {
 		CHAT("chat"),
 		SINGLE("single");
 
@@ -55,34 +49,26 @@ public abstract class PConv extends javax.swing.JPanel {
 	protected String mTitle;
 	protected String mSubTitle;
 	protected String mId;
-	protected boolean mIsChat = false;
 	protected boolean mOpen = false;
-	protected boolean mAdmin = false;
-	protected String mChatRef;
+
 	protected IConvListener iConvListener;
-
-	public String getChatRef() {
-		return mChatRef;
-	}
-
-	public boolean isChat() {
-		return mIsChat;
-	}
 
 	public String getTitle() {
 		return mTitle;
 	}
 
-	public void addLineToChat(String line) {
-		history.add(line);
+	public void setTitle(String newTitle) {
+		mTitle = newTitle;
+		mLabel0.setText(mTitle + mSubTitle);
+	}
+
+	public void setSubTitle(String newDesc) {
+		mSubTitle = newDesc;
+		mLabel0.setText(mTitle + mSubTitle);
 	}
 
 	public boolean isOpen() {
 		return mOpen;
-	}
-
-	public void setAdminRights(boolean admin) {
-		mAdmin = true;
 	}
 
 	public void setState(boolean open) {
@@ -98,14 +84,6 @@ public abstract class PConv extends javax.swing.JPanel {
 		return mId;
 	}
 
-	public boolean isConvChat() {
-		return mIsChat;
-	}
-
-	public boolean hasAdminRights() {
-		return mAdmin;
-	}
-
 	public void requested() {
 		requestFocus();
 		mTxtPane.requestFocusInWindow();
@@ -113,7 +91,7 @@ public abstract class PConv extends javax.swing.JPanel {
 
 	public synchronized void addLine(String line) {
 		mMsgListModel.addElement(line);
-		FileManager.getInstance().saveConvHistory(mTitle, line, mIsChat);
+		// FileManager.getInstance().saveConvHistory(mTitle, line, mIsChat);
 	}
 
 	/**
@@ -141,7 +119,16 @@ public abstract class PConv extends javax.swing.JPanel {
 		mScrollPane1.setViewportView(mTxtPane);
 
 		mBtnSend.setText("SEND");
-		mBtnSend.addActionListener(arg0 -> actionSend());
+		mBtnSend.addActionListener(arg0 -> {
+			String text = mTxtPane.getText();
+
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+			LocalDateTime now = LocalDateTime.now();
+
+			String line = "[" + dtf.format(now) + "]" + GUI.getInstance().getSession().getNick() + ": " + text;
+
+			actionSend(line);
+		});
 
 		mLabel0.setIcon(new javax.swing.ImageIcon("/home/carlos/Desktop/rawIcons/btn_copy_to_clipboard.png")); // NOI18N
 		mLabel0.setText(mTitle + "\n" + mSubTitle);
@@ -211,133 +198,17 @@ public abstract class PConv extends javax.swing.JPanel {
 	private javax.swing.JTextPane mTxtPane;
 	// End of variables declaration
 
-	private void actionSend() {
-		String text = mTxtPane.getText();
-
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
-		LocalDateTime now = LocalDateTime.now();
-
-		String line = "[" + dtf.format(now) + "]" + GUI.getInstance().getSession().getNick() + ": " + text;
+	protected void actionSend(String line) {
 
 		addLine("(you)" + line);
 		mTxtPane.setText("");
 
-		iConvListener.onMsgSent(mId, mTitle, mSubTitle, line, mIsChat);
 	}
 
 	protected void loadHistory() {
 		for (String string : history) {
 			addLine(string);
 		}
-	}
-
-	public static class MenuConv extends JMenuBar {
-
-		private static final PChat PConv = null;
-
-		private final String ITEM_0 = "Show info";
-
-		private final String ITEM_1 = "Leave chat";
-
-		private final String ITEM_2 = "Settings";
-
-		private final String ITEM_ADMIN_2_0 = "Manage users";
-		private final String ITEM_ADMIN_2_0_0 = "Edit Rights";
-		private final String ITEM_ADMIN_2_0_1 = "Add members";
-		private final String ITEM_ADMIN_2_0_2 = "Delete members";
-		private final String ITEM_ADMIN_2_1 = "Edit Bio";
-		private final String ITEM_ADMIN_2_2 = "Edit Tittle";
-		private final String ITEM_ADMIN_2_3 = "Delete chat";
-
-		public MenuConv(PConv instance) {
-			if (instance instanceof PChat) {
-				initComponents((PChat) instance);
-			} else if (instance instanceof PSingle) {
-				initComponents((PSingle) instance);
-			}
-		}
-
-		private void initComponents(PChat instance) {
-			JMenuItem item0 = new JMenuItem(ITEM_0);
-			add(item0);
-
-			JMenuItem item1 = new JMenuItem(ITEM_1);
-			add(item1);
-
-			initAdmintItems(instance.hasAdminRights());
-		}
-
-		private void initComponents(PSingle instance) {
-			JMenuItem item0 = new JMenuItem(ITEM_0);
-			add(item0);
-			JMenuItem item1 = new JMenuItem(ITEM_1);
-			add(item1);
-		}
-
-		private void initAdmintItems(boolean isAdmin) {
-
-			JMenu item2 = new JMenu();
-			item2.setText(ITEM_2);
-			if (isAdmin) {
-				JMenu manageUsers = new JMenu(ITEM_ADMIN_2_0);
-				JMenuItem manageRights = new JMenuItem(ITEM_ADMIN_2_0_0);
-				manageRights.addActionListener(new ActionListener() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// TODO edit rights
-					}
-
-				});
-				JMenuItem addMembers = new JMenuItem(ITEM_ADMIN_2_0_1);
-				addMembers.addActionListener(new ActionListener() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// TODO Add member to chat
-					}
-
-				});
-
-				JMenuItem deleteMembers = new JMenuItem(ITEM_ADMIN_2_0_2);
-				deleteMembers.addActionListener(new ActionListener() {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// TODO Auto-generated method stub
-						throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
-					}
-
-				});
-				manageUsers.add(manageRights);
-				manageUsers.add(addMembers);
-				manageUsers.add(deleteMembers);
-
-				item2.add(manageUsers);
-
-				item2.add(new JMenuItem(ITEM_ADMIN_2_1));
-				item2.add(new JMenuItem(ITEM_ADMIN_2_2));
-				item2.add(new JMenuItem(ITEM_ADMIN_2_3));
-				add(item2);
-			}
-
-		}
-
-		private void changeTitle(String newTitle) {
-
-		}
-
-		private void changeDesc(String newDesc) {
-
-		}
-
-		private void showConvInfo() {
-
-		}
-
-		private void leaveChat() {
-		}
-
 	}
 
 	public interface IConvListener {

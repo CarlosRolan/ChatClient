@@ -83,7 +83,7 @@ public class CLI extends Thread implements Codes, CLIActions {
                 break;
 
             case CHAT:
-                showInChatMenu(pCurrentChat.getTitle(), pCurrentChat.getMember(pClientCon.getConId()).isAdmin());
+                showInChatMenu(pCurrentChat.getTitle(), pCurrentChat.getMemberFromId(pClientCon.getConId()).isAdmin());
                 selectInChatAction();
                 break;
 
@@ -226,7 +226,7 @@ public class CLI extends Thread implements Codes, CLIActions {
                 break;
             // Delete Members
             case OP_5:
-                if (pCurrentChat.getMember(pClientCon.getConId()).isAdmin()) {
+                if (pCurrentChat.getMemberFromId(pClientCon.getConId()).isAdmin()) {
                     pClientCon.deleteChat(pCurrentChat.getChatId());
                 } else {
                     System.out.println("U are not admin");

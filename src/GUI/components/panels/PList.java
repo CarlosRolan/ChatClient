@@ -1,4 +1,4 @@
-package GUI.view.components.panels;
+package GUI.components.panels;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -10,8 +10,8 @@ import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import GUI.view.components.item.ItemView;
-import GUI.view.components.item.ItemView.IMyItemViewListener;
+import GUI.components.item.ItemView;
+import GUI.components.item.ItemView.IMyItemViewListener;
 
 public class PList extends JPanel {
 
@@ -30,7 +30,7 @@ public class PList extends JPanel {
     }
 
     /* For shopwing the chat list */
-    PList() {
+    public PList() {
         initComponents();
     }
 
@@ -46,6 +46,7 @@ public class PList extends JPanel {
         mScrollPane = new JScrollPane(mContainer);
         add(mScrollPane);
     }
+
 
     public void refreshList(List<String> list, IMyItemViewListener itemListener, boolean isChatList) {
         mContainer.removeAll();

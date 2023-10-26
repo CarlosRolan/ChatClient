@@ -63,8 +63,16 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void showAllChats() throws SocketException, IOException {
-        write(ClientAPI.newRequest().showAllYourChatsReq(getConId()));
+    public void showAllChats() {
+        try {
+            write(ClientAPI.newRequest().showAllYourChatsReq(getConId()));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -73,8 +81,16 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void showAllMemberforChat(String chatId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().showAllMembersReq(chatId));
+    public void showAllMemberforChat(String chatId) {
+        try {
+            write(ClientAPI.newRequest().showAllMembersReq(chatId));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -115,10 +131,18 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void exitSingle(String singleId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitSingleReq(
-                getConId(),
-                singleId));
+    public void exitSingle(String singleId) {
+        try {
+            write(ClientAPI.newRequest().exitSingleReq(
+                    getConId(),
+                    singleId));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -127,10 +151,18 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void exitChat(Chat selectedChat) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitChatReq(
-                getConId(),
-                selectedChat.getChatId()));
+    public void exitChat(Chat selectedChat) {
+        try {
+            write(ClientAPI.newRequest().exitChatReq(
+                    getConId(),
+                    selectedChat.getChatId()));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -139,10 +171,18 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void deleteChat(String chatId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().exitChatReq(
-                getConId(),
-                chatId));
+    public void deleteChat(String chatId) {
+        try {
+            write(ClientAPI.newRequest().exitChatReq(
+                    getConId(),
+                    chatId));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -152,10 +192,18 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void addMemberToChat(Chat currentChat, String memberId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().addMemberToChatReq(
-                currentChat.getChatId(),
-                memberId));
+    public void addMemberToChat(Chat currentChat, String memberId) {
+        try {
+            write(ClientAPI.newRequest().addMemberToChatReq(
+                    currentChat.getChatId(),
+                    memberId));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -165,10 +213,18 @@ public class ClientConnection extends Connection implements Env {
      * @throws SocketException
      * @throws IOException
      */
-    public void deleteMember(Chat currentChat, String memberId) throws SocketException, IOException {
-        write(ClientAPI.newRequest().deleteMemberinChatReq(
-                currentChat.getChatId(),
-                memberId));
+    public void deleteMember(Chat currentChat, String memberId) {
+        try {
+            write(ClientAPI.newRequest().deleteMemberinChatReq(
+                    currentChat.getChatId(),
+                    memberId));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     public boolean createNewChat(String chatTitle, String chatDec, List<String> membersToAddList) {
@@ -220,14 +276,16 @@ public class ClientConnection extends Connection implements Env {
         write(ClientAPI.newRequest().updateStateReq(getConId(), dtf.format(now)));
     }
 
-    public void editMemberRights(Chat editingChat, List<String> memberRefUpdated) {
-
-    }
-
-    public void editChatTitle(Chat current, String updatedTitle) {
-        current.setTitle(updatedTitle);
-
-     
+    public void sendChatUpdated(Chat updated) {
+        try {
+            write(ClientAPI.newRequest().chatUpdatedReq(updated));
+        } catch (SocketException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /* RESPONDS */

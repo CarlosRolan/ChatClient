@@ -1,14 +1,9 @@
-package GUI.view;
+package GUI.components.frame;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
@@ -18,14 +13,15 @@ import com.data.MSG;
 
 import GUI.GUI;
 import GUI.GUI.IGUIListener;
-import GUI.view.components.MyTreeView;
-import GUI.view.components.MyTreeView.ITreeViewListener;
-import GUI.view.components.MyUserPicker;
-import GUI.view.components.item.ItemView;
-import GUI.view.components.item.ItemView.IMyItemViewListener;
-import GUI.view.components.panels.PConv;
-import GUI.view.components.panels.PConv.IConvListener;
-import GUI.view.components.panels.PTabbs;
+import GUI.components.MyTreeView;
+import GUI.components.MyTreeView.ITreeViewListener;
+import GUI.components.item.ItemView;
+import GUI.components.item.ItemView.IMyItemViewListener;
+import GUI.components.menus.MenuMain;
+import GUI.components.menus.MenuMain.IMainMenuListener;
+import GUI.components.panels.PConv;
+import GUI.components.panels.PConv.IConvListener;
+import GUI.components.panels.PTabbs;
 
 /**
  *
@@ -59,7 +55,7 @@ public class MainView extends JFrame {
 		mTreeView = new MyTreeView(iTreeViewListener);
 		mTabbs = new PTabbs();
 
-		mMenuBar = new MenuMain();
+		mMenuBar = new MenuMain(iMainMenuListener);
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -301,72 +297,15 @@ public class MainView extends JFrame {
 
 	};
 
-	public class MenuMain extends JMenuBar {
+	private final IMainMenuListener iMainMenuListener = new IMainMenuListener() {
 
-		private final String ITEM_0 = "Profile";
-
-		private final String ITEM_1 = "New Chat..";
-
-		private final String ITEM_2 = "Settings";
-		private final String ITEM_2_0 = "Tree View";
-		private final String ITEM_2_1 = "Tab View";
-
-		public final String[] MENU_ITEMS = { ITEM_0, ITEM_1, ITEM_2 };
-
-		public MenuMain() {
-			initComponents();
+		@Override
+		public void goToProfile() {
+			// TODO Auto-generated method stub
 		}
 
-		private void initComponents() {
-			initItems();
-		}
-
-		private void initItems() {
-
-			JMenuItem iProfile = new JMenuItem(MENU_ITEMS[0]);
-			iProfile.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					itemAction0();
-				}
-
-			});
-			JMenuItem iNewChat = new JMenuItem(MENU_ITEMS[1]);
-			iNewChat.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					actionNewChat();
-				}
-
-			});
-			JMenu iSettings = new JMenu(MENU_ITEMS[2]);
-			iSettings.add(new JMenuItem(ITEM_2_0));
-			iSettings.add(new JMenuItem(ITEM_2_1));
-
-			add(iProfile);
-			add(iNewChat);
-			add(iSettings);
-
-		}
-
-		private void itemAction0() {
-
-		}
-
-		public void enableTabView() {
-			mScrollPane.setVisible(false);
-			mTabbs.setVisible(true);
-		}
-
-		public void enableTreeView() {
-			mScrollPane.setVisible(true);
-			mTabbs.setVisible(false);
-		}
-
-		private void actionNewChat() {
-
+		@Override
+		public void createNewChat() {
 			int addingMembers = 0;
 			String newChatTitle = JOptionPane.showInputDialog("Title of the chat");
 			String newChatDesc = null;
@@ -387,8 +326,6 @@ public class MainView extends JFrame {
 
 							// IMPORTANT Notice that the picker is a modal Jdialog and no a Jframe in a
 							// diferent Thread
-							MyUserPicker.selectMembers(mWeakReference.get(), true, tempConRefs, newChatTitle,
-									newChatDesc);
 							break;
 						case JOptionPane.NO_OPTION:
 							boolean created = GUI.getInstance().getSession().createNewChat(newChatTitle, newChatDesc,
@@ -407,7 +344,21 @@ public class MainView extends JFrame {
 					}
 				}
 			}
+
 		}
-	}
+
+		@Override
+		public void showTreeView() {
+			mScrollPane.setVisible(true);
+			mTabbs.setVisible(false);
+		}
+
+		@Override
+		public void showListView() {
+			mScrollPane.setVisible(false);
+			mTabbs.setVisible(true);
+		}
+
+	};
 
 }

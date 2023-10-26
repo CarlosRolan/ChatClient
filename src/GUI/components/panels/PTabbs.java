@@ -1,4 +1,4 @@
-package GUI.view.components.panels;
+package GUI.components.panels;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import GUI.view.components.item.ItemView.IMyItemViewListener;
+import GUI.components.item.ItemView.IMyItemViewListener;
 
 public class PTabbs extends JTabbedPane {
 

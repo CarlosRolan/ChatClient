@@ -1,11 +1,10 @@
-package GUI.view.components.panels;
+package GUI.components.panels;
 
 import controller.manager.FileManager;
 
 public class PSingle extends PConv {
- 
 
-    protected PSingle(String convId, String convTitle, String convSubTitle, IConvListener listener) {
+    PSingle(String convId, String convTitle, String convSubTitle, IConvListener listener) {
         iConvListener = listener;
         mId = convId;
         mTitle = convTitle;
@@ -16,5 +15,11 @@ public class PSingle extends PConv {
             loadHistory();
         }
         initComponents();
+    }
+
+    @Override
+    protected void actionSend(String line) {
+        super.actionSend(line);
+        iConvListener.onMsgSent(mId, mTitle, mSubTitle, line, false);
     }
 }

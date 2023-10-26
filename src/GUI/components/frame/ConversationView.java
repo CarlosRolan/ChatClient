@@ -1,4 +1,4 @@
-package GUI.view;
+package GUI.components.frame;
 
 import java.awt.EventQueue;
 import java.awt.event.WindowEvent;
@@ -6,10 +6,14 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;
 
-import GUI.view.components.panels.PChat;
-import GUI.view.components.panels.PConv;
-import GUI.view.components.panels.PConv.MenuConv;
-import GUI.view.components.panels.PSingle;;
+import com.chat.Chat;
+
+import GUI.GUI;
+import GUI.components.menus.MenuConv;
+import GUI.components.menus.MenuConv.IMenuConvListener;
+import GUI.components.panels.PChat;
+import GUI.components.panels.PConv;
+import GUI.components.panels.PSingle;;
 
 public class ConversationView extends JFrame {
 
@@ -51,24 +55,19 @@ public class ConversationView extends JFrame {
 
         if (conversationPanel instanceof PChat) {
             System.out.println("Instance of PCHAT");
+            PChat downcast = (PChat) conversationPanel;
+            if (downcast.hasAdminRights()) {
+                setTitle("[ADMIN]CHAT: " + conversationPanel.getTitle());
+            } else {
+                setTitle("CHAT: " + conversationPanel.getTitle());
+            }
         } else if (conversationPanel instanceof PSingle) {
             System.out.println("Instance of PSINGLE");
         } else {
             System.out.println("Instance of PConv");
         }
 
-        mMenuBar = new MenuConv(conversationPanel);
-
-        if (conversationPanel.isChat()) {
-            if (conversationPanel.hasAdminRights()) {
-                setTitle("[ADMIN]CHAT: " + conversationPanel.getTitle());
-            } else {
-                setTitle("CHAT: " + conversationPanel.getTitle());
-            }
-
-        } else {
-            setTitle("CONVERSATION WITH: " + conversationPanel.getTitle());
-        }
+        mMenuBar = new MenuConv(conversationPanel, iMenuConvListener);
 
         setJMenuBar(mMenuBar);
 
@@ -132,6 +131,26 @@ public class ConversationView extends JFrame {
         pack();
     }// </editor-fold>
 
+    private final IMenuConvListener iMenuConvListener = new IMenuConvListener() {
+
+        @Override
+        public void editChat(PChat instance) {
+            Chat editedChat = instance.getChatInstance();
+            setTitle("EDITED: " + editedChat.getTitle());
+            GUI.getInstance().updateChat(editedChat);
+        }
+
+        @Override
+        public void deleteChat(Chat deleted) {
+            dispose();
+        }
+
+        @Override
+        public void editMembers(PChat instance) {
+        }
+
+    };
+
     // Variables declaration - do not modify
-    private PConv.MenuConv mMenuBar;
+    private MenuConv mMenuBar;
 }
