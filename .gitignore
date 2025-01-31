@@ -1,6 +1,4 @@
-*./bin
-bin/Main.class
-bin/console/ConsoleActions.class
-bin/console/ConsoleActions.class
+/bin
+/openjfx
 .project
 .classpath

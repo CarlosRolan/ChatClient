@@ -1,0 +1,17 @@
+{
+  "java.project.referencedLibraries": [
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.fxml.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.media.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.graphics.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.web.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx-swt.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.swing.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.base.jar",
+    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.controls.jar"
+  ],
+  "java.project.sourcePaths": [
+    "src"
+  ],
+
+  "java.project.outputPath": "bin"
+}

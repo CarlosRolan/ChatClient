@@ -6,7 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import java.net.Socket;
-import java.net.UnknownHostException;;
+import java.net.UnknownHostException;
 
 public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 
@@ -43,7 +43,6 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 			System.out.println("IOEx");
 		} catch (NullPointerException e) {
 			System.out.println("Null pointer");
-			e.printStackTrace();
 		}
 	}
 
