@@ -1,6 +1,9 @@
-package GUI;
+package com.GUI;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -8,27 +11,18 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.geometry.Pos;
-import controller.Client;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
+import com.MainView;
 public class ChatController {
-
-    public static Client clientInstance = getInstance();
-
-    public static Client getInstance() {
-        return new Client("Carlos");
-    }
 
     @FXML
     private ListView<String> list_users; // Lista de usuarios
     @FXML
     private ListView<Message> list_conversation; // Lista de mensajes
     @FXML
-    private TextArea messageInput; // Campo de texto para escribir
+    private TextArea txtArea_msgInput; // Campo de texto para escribir
     @FXML
-    private Button sendButton; // Botón de enviar
+    private Button btn_send; // Botón de enviar
 
     private ObservableList<Message> messages = FXCollections.observableArrayList(
             new Message("Hola, ¿cómo estás?", false),
@@ -43,14 +37,14 @@ public class ChatController {
         list_conversation.setCellFactory(listView -> new MessageCell());
 
         // Evento del botón de enviar
-        sendButton.setOnAction(event -> sendMessage());
+        btn_send.setOnAction(event -> sendMessage());
     }
 
     private void sendMessage() {
-        String text = messageInput.getText().trim();
+        String text = txtArea_msgInput.getText().trim();
         if (!text.isEmpty()) {
             messages.add(new Message(text, true)); // Mensaje enviado por el usuario
-            messageInput.clear(); // Limpiar el campo de texto
+            txtArea_msgInput.clear(); // Limpiar el campo de texto
             list_conversation.scrollTo(messages.size() - 1); // Auto-scroll al último mensaje
             // TODO aqui tiene que ir el metodo de enviar mensaje al servidor
         }
