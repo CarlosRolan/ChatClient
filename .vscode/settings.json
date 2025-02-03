@@ -1,16 +1,23 @@
 {
-  "java.project.referencedLibraries": [
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.fxml.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.media.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.graphics.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.web.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx-swt.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.swing.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.base.jar",
-    "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.controls.jar"
-  ],
+  "java.project.referencedLibraries": {
+    "include": [
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.fxml.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.media.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.graphics.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.web.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx-swt.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.swing.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.base.jar",
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\ChatClient\\lib\\javafx.controls.jar",
+      "lib/comunication.jar"
+    ],
+    "exclude": [
+      "c:\\Users\\Usuario\\Documents\\vsCode-workspace\\ChatProyect\\lib\\Comunication.jar"
+    ]
+  },
   "java.project.sourcePaths": [
-    "src"
+    "src",
+    "lib"
   ],
 
   "java.project.outputPath": "bin"

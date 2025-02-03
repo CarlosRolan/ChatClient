@@ -7,13 +7,25 @@ import java.io.ObjectOutputStream;
 
 import java.net.Socket;
 import java.net.UnknownHostException;
+import com.comunication.*;
 
-public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
+public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 
+	private static Client clientInstance = getClientInstance();
+
+	public static Client getClientInstance() {
+		if (clientInstance == null) {
+			clientInstance = new Client("Carlos");
+		}
+		return clientInstance;
+	}
+
+	private String serverId = null;
 	private Socket socket = null;
 	private String pNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
+	
 
 	public String getNick() {
 		return pNick;
@@ -73,7 +85,7 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands{
 
 	public Message readMessage() {
 		try {
-			return (Message) ois.readObject() ;
+			return (Message) ois.readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;

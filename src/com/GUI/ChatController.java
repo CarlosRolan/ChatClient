@@ -1,5 +1,8 @@
 package com.GUI;
 
+import com.controller.Client;
+
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -11,26 +14,29 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import com.comunication.*;
 
-import com.MainView;
 public class ChatController {
 
     @FXML
     private ListView<String> list_users; // Lista de usuarios
     @FXML
-    private ListView<Message> list_conversation; // Lista de mensajes
+    private ListView<ChatMessage> list_conversation; // Lista de mensajes
     @FXML
     private TextArea txtArea_msgInput; // Campo de texto para escribir
     @FXML
     private Button btn_send; // Botón de enviar
 
-    private ObservableList<Message> messages = FXCollections.observableArrayList(
-            new Message("Hola, ¿cómo estás?", false),
-            new Message("¡Hola! Estoy bien, ¿y tú?", true),
-            new Message("También bien, gracias. ¿Qué tal tu día?", false),
-            new Message("Bastante ocupado, pero bien. ¿Y el tuyo?", true));
+    private ObservableList<ChatMessage> messages = FXCollections.observableArrayList(
+            new ChatMessage("Hola, ¿cómo estás?", false),
+            new ChatMessage("¡Hola! Estoy bien, ¿y tú?", true),
+            new ChatMessage("También bien, gracias. ¿Qué tal tu día?", false),
+            new ChatMessage("Bastante ocupado, pero bien. ¿Y el tuyo?", true));
 
     public void initialize() {
+
+        startMessageReaderThread();
+
         list_conversation.setItems(messages);
 
         // Personalizar la visualización de los mensajes en la lista
@@ -43,7 +49,7 @@ public class ChatController {
     private void sendMessage() {
         String text = txtArea_msgInput.getText().trim();
         if (!text.isEmpty()) {
-            messages.add(new Message(text, true)); // Mensaje enviado por el usuario
+            messages.add(new ChatMessage(text, true)); // Mensaje enviado por el usuario
             txtArea_msgInput.clear(); // Limpiar el campo de texto
             list_conversation.scrollTo(messages.size() - 1); // Auto-scroll al último mensaje
             // TODO aqui tiene que ir el metodo de enviar mensaje al servidor
@@ -51,11 +57,11 @@ public class ChatController {
     }
 
     // Clase para representar los mensajes
-    public static class Message {
+    public static class ChatMessage {
         private final String text;
         private final boolean isUser;
 
-        public Message(String text, boolean isUser) {
+        public ChatMessage(String text, boolean isUser) {
             this.text = text;
             this.isUser = isUser;
         }
@@ -70,9 +76,9 @@ public class ChatController {
     }
 
     // Personalizar la apariencia de los mensajes en la lista
-    private static class MessageCell extends ListCell<Message> {
+    private static class MessageCell extends ListCell<ChatMessage> {
         @Override
-        protected void updateItem(Message message, boolean empty) {
+        protected void updateItem(ChatMessage message, boolean empty) {
             super.updateItem(message, empty);
 
             if (empty || message == null) {
@@ -95,4 +101,35 @@ public class ChatController {
             }
         }
     }
+
+    // Método para leer mensajes en un hilo separado
+    private void startMessageReaderThread() {
+        Thread messageReaderThread = new Thread(() -> {
+            // Lógica para leer el mensaje
+            Client.getClientInstance().requestOnlineUsers();
+            // Message responseMessage = Client.getClientInstance().readMessage();
+
+            // Asegurarse de que la actualización de la UI se haga en el hilo de la interfaz
+            Platform.runLater(() -> {
+                Message responseMessage = Client.getClientInstance().readMessage();
+
+                switch (responseMessage.getAction()) {
+                    case RequestAPI.SHOW_ALL_ONLINE:
+                        String[] msgResult = responseMessage.getText().split(",");
+                        for (String string : msgResult) {
+                            System.out.println(string);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+                System.out.println(responseMessage);
+            });
+        });
+
+        // Iniciar el hilo de lectura de mensajes
+        messageReaderThread.start();
+    }
+
 }

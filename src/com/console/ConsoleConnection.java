@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import com.controller.Client;
-import com.controller.Message;
-import com.controller.RequestAPI;
-import com.controller.ResponseCommands;
+import com.comunication.*;
 
 public class ConsoleConnection extends Thread implements RequestAPI, ConsoleActions, ResponseCommands {
     // Singleton

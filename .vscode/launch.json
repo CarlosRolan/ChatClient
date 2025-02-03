@@ -3,6 +3,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.Main",
+            "projectName": "ChatClient_2e6d6b06"
+        },
+        {
+            "type": "java",
+            "name": "MainView",
+            "request": "launch",
+            "mainClass": "com.MainView",
+            "projectName": "ChatClient_2e6d6b06"
+        },
+        {
+            "type": "java",
             "name": "MainView",
             "request": "launch",
             "mainClass": "GUI.MainView",
