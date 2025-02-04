@@ -3,32 +3,11 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Main",
-            "request": "launch",
-            "mainClass": "com.Main",
-            "projectName": "ChatClient_2e6d6b06"
-        },
-        {
-            "type": "java",
-            "name": "MainView",
+            "name": "Launch MainView",
             "request": "launch",
             "mainClass": "com.MainView",
-            "projectName": "ChatClient_2e6d6b06"
-        },
-        {
-            "type": "java",
-            "name": "MainView",
-            "request": "launch",
-            "mainClass": "GUI.MainView",
-            "projectName": "ChatClient_2e6d6b06"
-        },
-        {
-            "type": "java",
-            "request": "launch",
-            "name": "Ejecutar JavaFX App",
-            "mainClass": "MainView",
-            "cwd": "${workspaceFolder}",
-            "vmArgs": "--module-path lib --add-modules javafx.controls,javafx.fxml",
+            "preLaunchTask": "compilar",
+            "vmArgs": "--module-path lib --add-modules javafx.controls,javafx.fxml,comunication",
             "classPaths": [
                 "bin"
             ]

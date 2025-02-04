@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compilar",
+            "type": "shell",
+            "command": "javac",
+            "args": [
+                "--module-path", "lib",
+                "--add-modules", "javafx.controls,javafx.fxml,comunication",
+                "-d", "bin",
+                "src\\com\\MainView.java",
+                "src\\com\\controller\\*.java",
+                "src\\com\\GUI\\*.java"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

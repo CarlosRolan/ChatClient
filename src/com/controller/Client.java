@@ -7,7 +7,13 @@ import java.io.ObjectOutputStream;
 
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Optional;
+
+import javax.swing.JDialog;
+
 import com.comunication.*;
+
+import javafx.scene.control.TextInputDialog;
 
 public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 
@@ -15,7 +21,22 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 
 	public static Client getClientInstance() {
 		if (clientInstance == null) {
-			clientInstance = new Client("Carlos");
+			String userName = null;
+			// Mostrar diálogo antes de cargar la interfaz
+			TextInputDialog dialog = new TextInputDialog();
+			dialog.setTitle("Inicio de sesión");
+			dialog.setHeaderText("Bienvenido al Chat");
+			dialog.setContentText("Por favor, ingresa tu nombre de usuario:");
+
+			Optional<String> result = dialog.showAndWait();
+			if (result.isPresent() && !result.get().trim().isEmpty()) {
+				userName = result.get().trim();
+			} else {
+				System.out.println("El usuario canceló la entrada o ingresó un nombre vacío.");
+				System.exit(0); // Cerrar la aplicación si no hay nombre
+			}
+
+			clientInstance = new Client(userName);
 		}
 		return clientInstance;
 	}
@@ -25,10 +46,13 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 	private String pNick = "Nameless";
 	private ObjectInputStream ois = null;
 	private ObjectOutputStream oos = null;
-	
 
 	public String getNick() {
 		return pNick;
+	}
+
+	public String getServerId() {
+		return serverId;
 	}
 
 	public Client() throws IOException {
@@ -59,11 +83,15 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 	}
 
 	private boolean presentToServer() {
+		System.out.println("Sending presentation");
 		Message presentation = new Message(PRESENTATION, getNick());
 		writeMessage(presentation);
 
 		Message presentationResponse = readMessage();
 		if (presentationResponse.getAction().equals(PRESENTATION_SUCCES)) {
+			System.out.println("Getting Id from SERVER");
+			String[] userInfo = presentationResponse.getText().split("_");
+			serverId = userInfo[0];
 			return true;
 		} else {
 			return false;
@@ -98,5 +126,14 @@ public class Client implements ClientEnviroment, RequestAPI, ResponseCommands {
 	public void requestOnlineUsers() {
 		Message onlineUsers = new Message(SHOW_ALL_ONLINE);
 		writeMessage(onlineUsers);
+	}
+
+	public void notifyImOnline() {
+		Message onlineUser = new Message("USER_ONLINE", getServerId(), "SERVER");
+		writeMessage(onlineUser);
+	}
+
+	public void sendMsgToChat(String receptorId, String txt) {
+		writeMessage(new Message("TO_CHAT", getServerId(), receptorId, txt));
 	}
 }

@@ -13,8 +13,6 @@ import com.controller.Client;
 
 public class MainView extends Application {
 
-
-
     @Override
     public void start(Stage primaryStage) throws IOException {
         // Cargar la vista FXML
@@ -26,8 +24,6 @@ public class MainView extends Application {
         primaryStage.setTitle(Client.getClientInstance().getNick());
         primaryStage.setScene(scene);
         primaryStage.show();
-
-
     }
 
  
